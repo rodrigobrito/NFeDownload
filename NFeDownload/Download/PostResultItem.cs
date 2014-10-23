@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NFeDownload
+﻿namespace NFeDownload.Download
 {
-    public class DataItem
+    public class PostResultItem
     {
         public string Div { get; set; }
         public string Legend { get; set; }

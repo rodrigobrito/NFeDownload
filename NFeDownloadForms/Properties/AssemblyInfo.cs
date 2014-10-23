@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NFeDownload")]
+[assembly: AssemblyTitle("NFeDownloadForms")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NFeDownload")]
+[assembly: AssemblyProduct("NFeDownloadForms")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("53b8dab8-6286-40a4-8985-6152f3a3bea5")]
+[assembly: Guid("a489b113-64c5-4186-9747-c54a3d7a2337")]
 
 // Version information for an assembly consists of the following four values:
 //

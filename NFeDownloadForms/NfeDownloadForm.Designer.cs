@@ -1,4 +1,4 @@
-﻿namespace NFeDownload
+﻿namespace NFeDownloadForms
 {
     partial class NfeDownloadForm
     {
@@ -57,10 +57,11 @@
             // captchaPictureBox
             // 
             this.captchaPictureBox.BackColor = System.Drawing.Color.White;
+            this.captchaPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.captchaPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.captchaPictureBox.Location = new System.Drawing.Point(12, 8);
             this.captchaPictureBox.Name = "captchaPictureBox";
-            this.captchaPictureBox.Size = new System.Drawing.Size(192, 82);
+            this.captchaPictureBox.Size = new System.Drawing.Size(192, 120);
             this.captchaPictureBox.TabIndex = 2;
             this.captchaPictureBox.TabStop = false;
             // 

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NFeDownload
+﻿namespace NFeDownload.Download
 {
-    public class ItemsForPost
+    public class PostItems
     {
         public string FormAction { get; set; }
         public string Base64Image { get; set; }        

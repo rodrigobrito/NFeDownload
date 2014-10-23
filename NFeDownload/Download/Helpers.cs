@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.IO;
 
-namespace NFeDownload
+namespace NFeDownload.Download
 {
     public class Helpers
     {
