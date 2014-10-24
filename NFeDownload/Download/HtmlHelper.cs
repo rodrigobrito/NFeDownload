@@ -167,9 +167,15 @@ namespace NFeDownload.Download
             {
                 var dadosCiencia = GetDataItems(printUserPage, science.Id);
             }
+
             var dadosEmitente = GetDataItems(printUserPage, "Emitente");
             var dadosDestinatario = GetDataItems(printUserPage, "DestRem");
             var products = GetProducts(printUserPage);
+            var totais = GetDataItems(printUserPage, "Totais");        
+            var transporte = GetDataItems(printUserPage, "Transporte");
+            var cobranca = GetDataItems(printUserPage, "Cobranca");
+            var inf = GetDataItems(printUserPage, "Inf");
+            var avulsa = GetDataItems(printUserPage, "Avulsa");
 
             return string.Empty;
         }
@@ -199,7 +205,7 @@ namespace NFeDownload.Download
         public IList<PostResultItem> GetDataItems(HtmlDocument doc, string div)
         {
             var dataItems = new List<PostResultItem>();
-
+            var tablesWorked = new List<HtmlNode>();
             var nfeDiv = doc.GetElementbyId(div);
 
             var count = 1;
@@ -207,85 +213,91 @@ namespace NFeDownload.Download
             {
                 var legend = fieldset.Descendants().Where(d => d.Name.ToLower() == "legend").FirstOrDefault();
                 var tables = fieldset.Descendants().Where(d => d.Name.ToLower() == "table").ToList();
-                var eEventosNfe = legend.InnerText.Trim().Contains("Situação Atual:");
+                var eEventosNfe = false;
+                if (legend != null)
+                    eEventosNfe = legend.InnerText.Trim().Contains("Situação Atual:");
 
                 foreach (var table in tables)
                 {
-                    if (table != null)
+                    if (!tablesWorked.Contains(table))
                     {
-                        var trs = table.Descendants().Where(e => e.Name.ToLower() == "tr").ToList();
-
-                        if (!eEventosNfe)
+                        if (table != null)
                         {
-                            foreach (var tr in trs)
+                            var trs = table.Descendants().Where(e => e.Name.ToLower() == "tr").ToList();
+
+                            if (!eEventosNfe)
                             {
-                                var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
-                                foreach (var td in tds)
+                                foreach (var tr in trs)
                                 {
-                                    var dataItem = new PostResultItem();
-                                    dataItem.Fieldset = count;
-                                    dataItem.Legend = legend.InnerText.Trim();
-                                    dataItem.Div = div;
-
-                                    var label = td.Descendants().Where(d => d.Name.ToLower() == "label").FirstOrDefault();
-                                    var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
-
-                                    if (label != null && span != null && !string.IsNullOrWhiteSpace(label.InnerText))
+                                    var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
+                                    foreach (var td in tds)
                                     {
-                                        dataItem.AttributeName = label.InnerText.Trim();
+                                        var dataItem = new PostResultItem();
+                                        dataItem.Fieldset = count;
+                                        dataItem.Legend = legend.InnerText.Trim();
+                                        dataItem.Div = div;
+
+                                        var label = td.Descendants().Where(d => d.Name.ToLower() == "label").FirstOrDefault();
+                                        var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
+
+                                        if (label != null && span != null && !string.IsNullOrWhiteSpace(label.InnerText))
+                                        {
+                                            dataItem.AttributeName = label.InnerText.Trim();
+                                            dataItem.AttributeValue = span.InnerText.Trim();
+                                            dataItems.Add(dataItem);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (int i = 1; i < trs.Count; i++)
+                                {
+                                    var subNodeScience = trs[i].Descendants().Where(e => e.Id.Contains("CienciaOperacao")).FirstOrDefault();
+
+                                    if (subNodeScience != null)
+                                        subNodeScience.Remove();
+
+                                    var tds = trs[i].Descendants().Where(e => e.Name.ToLower() == "td").ToList();
+                                    var position = 0;
+                                    foreach (var td in tds)
+                                    {
+                                        var dataItem = new PostResultItem();
+                                        switch (position)
+                                        {
+                                            case 0:
+                                                dataItem.AttributeName = "Eventos da NF-e";
+                                                break;
+                                            case 1:
+                                                dataItem.AttributeName = "Protocolo";
+                                                break;
+                                            case 2:
+                                                dataItem.AttributeName = "Data / Hora";
+                                                break;
+                                            case 3:
+                                                dataItem.AttributeName = "Data / Hora AN";
+                                                break;
+                                        }
+
+                                        var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
                                         dataItem.AttributeValue = span.InnerText.Trim();
+                                        dataItem.Fieldset = count;
+                                        dataItem.Legend = legend.InnerText.Trim();
+                                        dataItem.Div = div;
                                         dataItems.Add(dataItem);
+                                        position++;
                                     }
                                 }
+                                eEventosNfe = false;
                             }
-                        }
-                        else
-                        {
-                            for (int i = 1; i < trs.Count; i++)
-                            {
-                                var subNodeScience = trs[i].Descendants().Where(e => e.Id.Contains("CienciaOperacao")).FirstOrDefault();
-
-                                if (subNodeScience != null)
-                                    subNodeScience.Remove();
-
-                                var tds = trs[i].Descendants().Where(e => e.Name.ToLower() == "td").ToList();
-                                var position = 0;
-                                foreach (var td in tds)
-                                {
-                                    var dataItem = new PostResultItem();
-                                    switch (position)
-                                    {
-                                        case 0:
-                                            dataItem.AttributeName = "Eventos da NF-e";
-                                            break;
-                                        case 1:
-                                            dataItem.AttributeName = "Protocolo";
-                                            break;
-                                        case 2:
-                                            dataItem.AttributeName = "Data / Hora";
-                                            break;
-                                        case 3:
-                                            dataItem.AttributeName = "Data / Hora AN";
-                                            break;
-                                    }
-
-                                    var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
-                                    dataItem.AttributeValue = span.InnerText.Trim();
-                                    dataItem.Fieldset = count;
-                                    dataItem.Legend = legend.InnerText.Trim();
-                                    dataItem.Div = div;
-                                    dataItems.Add(dataItem);
-                                    position++;
-                                }
-                            }
-                            eEventosNfe = false;
+                            tablesWorked.Add(table);
                         }
                     }
                 }
                 count++;
             }
 
-            return dataItems.OrderBy(d => d.Fieldset).ToList();
+            return dataItems.OrderBy(d => d.Fieldset).Distinct().ToList();
         }
 
         public IList<Produto> GetProducts(HtmlDocument doc)
