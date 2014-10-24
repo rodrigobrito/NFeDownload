@@ -124,7 +124,7 @@ namespace NFeDownload.Download
             }
         }
 
-        public string Post(PostItems itemsForPost)
+        public DownloadedHtmlData Post(PostItems itemsForPost)
         {
             ValidatePost(itemsForPost);
 
@@ -161,23 +161,26 @@ namespace NFeDownload.Download
             var printUserPage = new HtmlAgilityPack.HtmlDocument();
             printUserPage.Load(printResponseStream);
 
-            var dadosNfe = GetDataItems(printUserPage, "NFe");
+            var result = new DownloadedHtmlData();
+            result.DadosNfe = GetDataItems(printUserPage, "NFe");
             var operationScience = printUserPage.DocumentNode.Descendants().Where(e => e.Id.Contains("CienciaOperacao")).ToList();
+            var scienceOperationsList = new List<IList<PostResultItem>>();
             foreach (var science in operationScience)
             {
                 var dadosCiencia = GetDataItems(printUserPage, science.Id);
+                scienceOperationsList.Add(dadosCiencia);
             }
+            result.ScienceOperations = scienceOperationsList;
+            result.DadosEmitente = GetDataItems(printUserPage, "Emitente");
+            result.DadosDestinatario = GetDataItems(printUserPage, "DestRem");
+            result.Products = GetProducts(printUserPage);
+            result.Totais = GetDataItems(printUserPage, "Totais");
+            result.DadosTransporte = GetDataItems(printUserPage, "Transporte");
+            result.DadosCobranca = GetDataItems(printUserPage, "Cobranca");
+            result.InformacoesAdicionais = GetDataItems(printUserPage, "Inf");
+            result.NotaFiscalAvulsa = GetDataItems(printUserPage, "Avulsa");
 
-            var dadosEmitente = GetDataItems(printUserPage, "Emitente");
-            var dadosDestinatario = GetDataItems(printUserPage, "DestRem");
-            var products = GetProducts(printUserPage);
-            var totais = GetDataItems(printUserPage, "Totais");        
-            var transporte = GetDataItems(printUserPage, "Transporte");
-            var cobranca = GetDataItems(printUserPage, "Cobranca");
-            var inf = GetDataItems(printUserPage, "Inf");
-            var avulsa = GetDataItems(printUserPage, "Avulsa");
-
-            return string.Empty;
+            return result;
         }
 
         public string ComposePost(PostItems itemsForPost)

@@ -40,7 +40,7 @@ namespace NFeDownloadForms
 
                 helper.ValidatePost(postItems);
                 var postResult = helper.Post(postItems);
-
+                
                 InitializeForPost();
                 captchaTextBox.Text = string.Empty;
             }

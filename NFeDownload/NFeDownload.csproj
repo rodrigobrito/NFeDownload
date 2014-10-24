@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Download\DownloadedHtmlData.cs" />
     <Compile Include="Download\PostResultItem.cs" />
     <Compile Include="Download\Helpers.cs" />
     <Compile Include="Download\PostItems.cs" />
