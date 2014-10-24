@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -95,7 +96,6 @@ namespace NFeDownload.Download
             //if (string.IsNullOrWhiteSpace(itemsForPost.ViewStateGenerator))
             //{
             //    throw new InvalidOperationException("__VIEWSTATEGENERATOR deve possuir um valor!");
-            //    return false;
             //}
 
             if (string.IsNullOrWhiteSpace(itemsForPost.EventValidation))
@@ -148,7 +148,7 @@ namespace NFeDownload.Download
             var documentText = docUserWebPage.DocumentNode.InnerHtml;
             if (documentText.Contains("C&#243;digo da Imagem inv&#225;lido."))
             {
-                throw new InvalidDataException("Código da Imagem inválido. Tente novamente.");                
+                throw new InvalidDataException("Código da Imagem inválido. Tente novamente.");
             }
 
             var printRequest = (HttpWebRequest)WebRequest.Create("http://www.nfe.fazenda.gov.br/portal/consultaImpressao.aspx?tipoConsulta=completa");
@@ -169,6 +169,7 @@ namespace NFeDownload.Download
             }
             var dadosEmitente = GetDataItems(printUserPage, "Emitente");
             var dadosDestinatario = GetDataItems(printUserPage, "DestRem");
+            var products = GetProducts(printUserPage);
 
             return string.Empty;
         }
@@ -195,7 +196,7 @@ namespace NFeDownload.Download
             return postData;
         }
 
-        public IList<PostResultItem> GetDataItems(HtmlAgilityPack.HtmlDocument doc, string div)
+        public IList<PostResultItem> GetDataItems(HtmlDocument doc, string div)
         {
             var dataItems = new List<PostResultItem>();
 
@@ -285,6 +286,200 @@ namespace NFeDownload.Download
             }
 
             return dataItems.OrderBy(d => d.Fieldset).ToList();
+        }
+
+        public IList<Produto> GetProducts(HtmlDocument doc)
+        {
+            var products = new List<Produto>();
+            Produto product = null;
+
+            var prdDiv = doc.GetElementbyId("Prod");
+            var tables = prdDiv.Descendants().Where(d => d.Name.ToLower() == "table"
+                && d.GetAttributeValue("class", "novalue").Contains("toggle box")
+                || d.GetAttributeValue("class", "novalue").Contains("toggable box")).ToList();
+
+            var count = 1;
+
+            foreach (var table in tables)
+            {
+                if (table.GetAttributeValue("class", "novalue") == "toggle box")
+                {
+                    product = new Produto();
+                    product.Num = table.Descendants().Where(d => d.Name.ToLower() == "td"
+                        && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-numero").FirstOrDefault().InnerText.Trim();
+                    product.Descricao = table.Descendants().Where(d => d.Name.ToLower() == "td"
+                        && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-descricao").FirstOrDefault().InnerText.Trim();
+                    product.Qtd = table.Descendants().Where(d => d.Name.ToLower() == "td"
+                        && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-qtd").FirstOrDefault().InnerText.Trim();
+                    product.UnidadeComercial = table.Descendants().Where(d => d.Name.ToLower() == "td"
+                       && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-uc").FirstOrDefault().InnerText.Trim();
+                    product.Valor = table.Descendants().Where(d => d.Name.ToLower() == "td"
+                     && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-vb").FirstOrDefault().InnerText.Trim();
+                }
+
+                if (table.GetAttributeValue("class", "novalue") == "toggable box" && product != null)
+                {
+                    var detailTables = table.Descendants().Where(e => e.Name.ToLower() == "table"
+                        && e.GetAttributeValue("class", "novalue") == "box").ToList();
+
+                    var tablesToRemove = new List<HtmlNode>();
+                    foreach (var detailTable in detailTables)
+                    {
+                         var trs = detailTable.Descendants().Where(e => e.Name.ToLower() == "tr").ToList();
+                         foreach (var tr in trs)
+                         {
+                              var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
+                              foreach (var td in tds)
+                              {
+                                  var subDetailTables = td.Descendants().Where(e => e.Name.ToLower() == "table"
+                                  && e.GetAttributeValue("class", "novalue") == "box").ToList();
+                                  foreach (var tableDetail in subDetailTables)
+                                      tablesToRemove.Add(tableDetail);
+                              }
+                         }
+                    }
+
+                    foreach(var removeTable in tablesToRemove)
+                    {
+                        detailTables.Remove(removeTable);
+                    }
+
+                    foreach (var detailTable in detailTables)
+                    {
+                        var trs = detailTable.Descendants().Where(e => e.Name.ToLower() == "tr").ToList();
+                        foreach (var tr in trs)
+                        {
+                            var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
+                            foreach (var td in tds)
+                            {
+                                var label = td.Descendants().Where(d => d.Name.ToLower() == "label").FirstOrDefault();
+                                var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
+
+                                if (label != null && span != null && !string.IsNullOrWhiteSpace(label.InnerText))
+                                {
+                                    switch (label.InnerText.Trim())
+                                    {
+                                        case "Código do Produto":
+                                            product.CodigoProduto = span.InnerText.Trim();
+                                            break;
+                                        case "Código NCM":
+                                            product.CodigoNCM = span.InnerText.Trim();
+                                            break;
+                                        case "Código EX da TIPI":
+                                            product.CodigoExDaTipi = span.InnerText.Trim();
+                                            break;
+                                        case "CFOP":
+                                            product.CFOP = span.InnerText.Trim();
+                                            break;
+                                        case "Outras Despesas Acessórias":
+                                            product.OutrasDespesasAcessorias = span.InnerText.Trim();
+                                            break;
+                                        case "Valor do Desconto":
+                                            product.ValorDesconto = span.InnerText.Trim();
+                                            break;
+                                        case "Valor Total do Frete":
+                                            product.ValorTotalFrete = span.InnerText.Trim();
+                                            break;
+                                        case "Valor do Seguro":
+                                            product.ValorSeguro = span.InnerText.Trim();
+                                            break;
+                                        case "Indicador de Composição do Valor Total da NF-e":
+                                            product.IndicadorComposicaoValorTotalNFe = span.InnerText.Trim();
+                                            break;
+                                        case "Código EAN Comercial":
+                                            product.CodigoEANComercial = span.InnerText.Trim();
+                                            break;
+                                        case "Quantidade Comercial":
+                                            product.QuantidadeComercial = span.InnerText.Trim();
+                                            break;
+                                        case "Código EAN Tributável":
+                                            product.CodigoEANTributavel = span.InnerText.Trim();
+                                            break;
+                                        case "Unidade Tributável":
+                                            product.UnidadeTributavel = span.InnerText.Trim();
+                                            break;
+                                        case "Quantidade Tributável":
+                                            product.QuantidadeTributavel = span.InnerText.Trim();
+                                            break;
+                                        case "Valor unitário de comercialização":
+                                            product.ValorUnitarioComercializacao = span.InnerText.Trim();
+                                            break;
+                                        case "Valor unitário de tributação":
+                                            product.ValorUnitarioTributacao = span.InnerText.Trim();
+                                            break;
+                                        case "Número do pedido de compra":
+                                            product.NumeroPedidoDeCompra = span.InnerText.Trim();
+                                            break;
+                                        case "Item do pedido de compra":
+                                            product.ItemPedidoCompra = span.InnerText.Trim();
+                                            break;
+                                        case "Valor Aproximado dos Tributos":
+                                            product.ValorAproximadoTributos = span.InnerText.Trim();
+                                            break;
+                                        case "Número da FCI":
+                                            product.NumeroFCI = span.InnerText.Trim();
+                                            break;
+                                    }
+                                }
+
+                                var subDetailTables = td.Descendants().Where(e => e.Name.ToLower() == "table"
+                                        && e.GetAttributeValue("class", "novalue") == "box").ToList();
+
+                                foreach (var subTable in subDetailTables)
+                                {
+                                    var tableRows = subTable.Descendants().Where(e => e.Name.ToLower() == "tr").ToList();
+                                    foreach (var tableRow in tableRows)
+                                    {
+                                        var tableColumns = tableRow.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
+                                        foreach (var tableColumn in tableColumns)
+                                        {
+                                            var columnLabel = tableColumn.Descendants().Where(d => d.Name.ToLower() == "label").FirstOrDefault();
+                                            var columnSpan = tableColumn.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
+
+                                            if (columnLabel != null && columnSpan != null && !string.IsNullOrWhiteSpace(columnLabel.InnerText))
+                                            {
+                                                switch (columnLabel.InnerText.Trim())
+                                                {
+                                                    case "Origem da Mercadoria":
+                                                        product.OrigemMercadoria = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Tributação do ICMS":
+                                                        product.TributacaoICMS = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Valor ICMS desoneração":
+                                                        product.ValorICMSDesoneracao = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "CST":
+                                                        var legend = td.Descendants().Where(e => e.Name.ToLower() == "legend").FirstOrDefault();
+                                                        if (legend != null)
+                                                        {
+                                                            switch (legend.InnerText.Trim())
+                                                            {
+                                                                case "PIS":
+                                                                    product.PIS_CST = columnSpan.InnerText.Trim();
+                                                                    break;
+                                                                case "COFINS":
+                                                                    product.COFINS_CST = columnSpan.InnerText.Trim();
+                                                                    break;
+                                                            }                                                            
+                                                        }                                                        
+                                                        break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    subTable.Remove();                                    
+                                }
+                            }
+                        }                       
+                    }
+                    products.Add(product);
+                }
+
+                count++;
+            }
+
+            return products;
         }
     }
 }
