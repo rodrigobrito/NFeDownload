@@ -28,5 +28,7 @@ namespace NFeDownload.Download
         public IList<PostResultItem> InformacoesAdicionais { get; set; }
 
         public IList<PostResultItem> NotaFiscalAvulsa { get; set; }
+
+        public string ChaveAcessso { get; set; }
     }
 }

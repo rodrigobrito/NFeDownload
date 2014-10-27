@@ -1,4 +1,5 @@
 ﻿using NFeDownload.Download;
+using NFeDownload.NFe;
 using System;
 using System.Windows.Forms;
 
@@ -7,6 +8,7 @@ namespace NFeDownloadForms
     public partial class NfeDownloadForm : Form
     {
         private readonly HtmlHelper helper = new HtmlHelper();
+        private readonly NFeGenerator nfeGenerator = new NFeGenerator();
         private PostItems postItems;
 
         public NfeDownloadForm()
@@ -32,25 +34,26 @@ namespace NFeDownloadForms
         }
 
         private void SendButtonOnClick(object sender, EventArgs e)
-        {                       
-            try
-            {
+        {
+            //try
+            //{
                 postItems.ChaveAcessoCompleta = nfeTextBox.Text;
                 postItems.Captcha = captchaTextBox.Text;
 
                 helper.ValidatePost(postItems);
                 var postResult = helper.Post(postItems);
+                nfeGenerator.Generate(postResult, @"C:\Users\HP\Desktop\teste.xml");
                 
                 InitializeForPost();
                 captchaTextBox.Text = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-                nfeTextBox.Focus();
-                InitializeForPost();
-            }                                                             
+            //    nfeTextBox.Focus();
+            //    InitializeForPost();
+            //}                                                             
         }        
     }
 }

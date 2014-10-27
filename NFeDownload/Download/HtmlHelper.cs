@@ -162,6 +162,8 @@ namespace NFeDownload.Download
             printUserPage.Load(printResponseStream);
 
             var result = new DownloadedHtmlData();
+            var spanChaveAcesso = printUserPage.GetElementbyId("lblChaveAcesso");
+            result.ChaveAcessso = spanChaveAcesso.InnerText.Trim();
             result.DadosNfe = GetDataItems(printUserPage, "NFe");
             var operationScience = printUserPage.DocumentNode.Descendants().Where(e => e.Id.Contains("CienciaOperacao")).ToList();
             var scienceOperationsList = new List<IList<PostResultItem>>();
@@ -178,7 +180,7 @@ namespace NFeDownload.Download
             result.DadosTransporte = GetDataItems(printUserPage, "Transporte");
             result.DadosCobranca = GetDataItems(printUserPage, "Cobranca");
             result.InformacoesAdicionais = GetDataItems(printUserPage, "Inf");
-            result.NotaFiscalAvulsa = GetDataItems(printUserPage, "Avulsa");
+            result.NotaFiscalAvulsa = GetDataItems(printUserPage, "Avulsa");            
 
             return result;
         }

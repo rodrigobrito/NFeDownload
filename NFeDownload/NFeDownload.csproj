@@ -50,14 +50,238 @@
     <Compile Include="Download\PostItems.cs" />
     <Compile Include="Download\HtmlHelper.cs" />
     <Compile Include="Download\Produto.cs" />
+    <Compile Include="NFe\NFeGenerator.cs" />
+    <Compile Include="NFe\Serialize\Cancelamento\envEventoCancNFe_v1.00.Designer.cs" />
+    <Compile Include="NFe\Serialize\Cancelamento\eventoCancNFe_v1.00.Designer.cs" />
+    <Compile Include="NFe\Serialize\Cancelamento\procEventoCancNFe_v1.00.designer.cs" />
+    <Compile Include="NFe\Serialize\Cancelamento\retEnvEventoCancNFe_v1.00.Designer.cs" />
+    <Compile Include="NFe\Serialize\CartaCorrecao\CCe_v1.00.designer.cs" />
+    <Compile Include="NFe\Serialize\CartaCorrecao\envCCe_v1.00.designer.cs" />
+    <Compile Include="NFe\Serialize\CartaCorrecao\procCCeNFe_v1.00.designer.cs" />
+    <Compile Include="NFe\Serialize\CartaCorrecao\retEnvCCe_v1.00.designer.cs" />
+    <Compile Include="NFe\Serialize\consCad_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\consReciNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\consSitNFe_v2.01.designer.cs" />
+    <Compile Include="NFe\Serialize\consStatServ_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\DownloadNFe\downloadNFe_v1.00.designer.cs" />
+    <Compile Include="NFe\Serialize\DownloadNFe\retDownloadNFe_v1.00.designer.cs" />
+    <Compile Include="NFe\Serialize\enviNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\Exceptions\ConsultaRecLote2Exception.cs" />
+    <Compile Include="NFe\Serialize\Exceptions\EnviaLote2Exception.cs" />
+    <Compile Include="NFe\Serialize\inutNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\nfe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\procInutNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\procNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\retConsCad_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\retConsReciNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\retConsSitNFe_v2.01.designer.cs" />
+    <Compile Include="NFe\Serialize\retConsStatServ_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\retEnviNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\retInutNFe_v2.00.designer.cs" />
+    <Compile Include="NFe\Serialize\tiposBasico_v1.03.designer.cs" />
+    <Compile Include="NFe\Serialize\xmldsig-core-schema_v1.01.designer.cs" />
+    <Compile Include="NFe\Util\Digit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="NFe\Schemas\cancNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\CCe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\confRecebto_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\consCad_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\consDPEC_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\consNFeDest_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\consReciNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\consSitNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\consSitNFe_v2.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\consStatServ_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\downloadNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\e110110_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\e110111_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\e210200_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\e210210_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\e210220_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\e210240_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\envCCe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\envConfRecebto_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\envDPEC_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\envEventoCancNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\envEvento_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\enviNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\eventoCancNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\inutNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteCancNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteCCe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteConfRecebto_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteConsNFeDest_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteConsSitNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteConsSitNFe_v2.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteConsStatServ_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteConsultaCadastro_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteDownloadNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteDPEC_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteEventoCancNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteInutNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\leiauteSRE_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\nfe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\procCancNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\procCCeNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\procConfRecebtoNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\procEventoCancNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\procEventoNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\procInutNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\procNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retCancNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retConsCad_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retConsDPEC_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retconsNFeDest_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retConsReciNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retConsSitNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retConsSitNFe_v2.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retConsStatServ_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retDownloadNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retDPEC_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retEnvCCe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retEnvConfRecebto_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retEnvEventoCancNFe_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retEnvEvento_v1.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retEnviNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\retInutNFe_v2.00.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\tiposBasico_v1.03.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="NFe\Schemas\xmldsig-core-schema_v1.01.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="NFe\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
