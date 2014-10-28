@@ -18,11 +18,11 @@ namespace NFeDownload.NFe
     {
         public NFeGenerator()
         {
-            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("pt-BR");;
-        }        
+            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("pt-BR"); ;
+        }
 
         public void Generate(DownloadedHtmlData downloadedData, string directory)
-        {                 
+        {
             var nota = new TNfeProc();
 
             UpdateDadosNfe(downloadedData.ChaveAcessso,
@@ -34,12 +34,12 @@ namespace NFeDownload.NFe
             UpdateDadosEmitente(nota, downloadedData.DadosEmitente);
             UpdateDadosDestinatario(nota, downloadedData.DadosDestinatario);
             UpdateProdutos(nota, downloadedData.Products);
+            UpdateTotais(nota, downloadedData.Totais);
+            UpdateTransporte(nota, downloadedData.DadosTransporte);
+            UpdateAdicionais(nota, downloadedData.InformacoesAdicionais);
 
-         
             SaveXml(nota.Serialize(), directory);
         }
-
-     
 
         private XmlDocument SaveXml(string xml, string fileName)
         {
@@ -89,7 +89,7 @@ namespace NFeDownload.NFe
             var tipoEmissaoPostResult = dadosNfe.Where(d => d.AttributeName == "Tipo de Emissão").FirstOrDefault();
             var finalidadePostResult = dadosNfe.Where(d => d.AttributeName == "Finalidade").FirstOrDefault();
             var procEmiPostResult = dadosNfe.Where(d => d.AttributeName == "Processo").FirstOrDefault();
-         
+
             nota.NFe = new TNFe();
             nota.versao = versaoNfe;
 
@@ -103,7 +103,7 @@ namespace NFeDownload.NFe
             var dataHoraSaidaText = dadosNfe.Where(d => d.AttributeName == "Data/Hora  Saída/Entrada").FirstOrDefault();
             var dataHoraSaida = DateTime.Parse(dataHoraSaidaText.AttributeValue.Replace("às", string.Empty).Replace("\r\n", string.Empty));
 
-            nota.NFe.infNFe.ide = new TNFeInfNFeIde();            
+            nota.NFe.infNFe.ide = new TNFeInfNFeIde();
             nota.NFe.infNFe.ide.cUF = GetUF(dadosNfe.Where(a => a.AttributeName == "UF").FirstOrDefault().AttributeValue);
             nota.NFe.infNFe.ide.cNF = cNF;
             nota.NFe.infNFe.ide.natOp = dadosNfe.Where(d => d.AttributeName == "Natureza da Operação").FirstOrDefault().AttributeValue;
@@ -122,7 +122,7 @@ namespace NFeDownload.NFe
             nota.NFe.infNFe.ide.tpAmb = GetTpAmb(dadosNfe.Where(d => d.Legend.Contains("produção")).Any() ? 1 : 2);
             nota.NFe.infNFe.ide.finNFe = GetFinNFe(int.Parse(finalidadePostResult.AttributeValue.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
             nota.NFe.infNFe.ide.procEmi = GetProcEmi(int.Parse(procEmiPostResult.AttributeValue.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
-            nota.NFe.infNFe.ide.verProc = dadosNfe.Where(d => d.AttributeName.Contains("Versão do Processo")).FirstOrDefault().AttributeValue.Trim(); 
+            nota.NFe.infNFe.ide.verProc = dadosNfe.Where(d => d.AttributeName.Contains("Versão do Processo")).FirstOrDefault().AttributeValue.Trim();
         }
 
         private void UpdateDadosEmitente(TNfeProc nota, IList<PostResultItem> dadosEmitente)
@@ -166,8 +166,8 @@ namespace NFeDownload.NFe
                 .Replace(".", string.Empty)
                 .Replace("/", string.Empty)
                 .Replace("-", string.Empty).Trim();
-            nota.NFe.infNFe.dest.xNome = GetValue(dadosDestinatario, "Nome / Razão Social");            
-            nota.NFe.infNFe.dest.IE = GetValue(dadosDestinatario, "Inscrição Estadual");                                                
+            nota.NFe.infNFe.dest.xNome = GetValue(dadosDestinatario, "Nome / Razão Social");
+            nota.NFe.infNFe.dest.IE = GetValue(dadosDestinatario, "Inscrição Estadual");
 
             nota.NFe.infNFe.dest.enderDest = new TEndereco();
             nota.NFe.infNFe.dest.enderDest.xLgr = GetValue(dadosDestinatario, "Endereço");
@@ -177,14 +177,14 @@ namespace NFeDownload.NFe
             nota.NFe.infNFe.dest.enderDest.cMun = GetValue(dadosDestinatario, "Município").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
             nota.NFe.infNFe.dest.enderDest.xMun = GetValue(dadosDestinatario, "Município").Split(new[] { "-" }, StringSplitOptions.None)[1].Trim(); ;
             nota.NFe.infNFe.dest.enderDest.UF = GetTUF(GetValue(dadosDestinatario, "UF"));
-            nota.NFe.infNFe.dest.enderDest.CEP = GetValue(dadosDestinatario, "CEP").Replace("-", string.Empty);            
+            nota.NFe.infNFe.dest.enderDest.CEP = GetValue(dadosDestinatario, "CEP").Replace("-", string.Empty);
             nota.NFe.infNFe.dest.enderDest.cPais = Tpais.Item1058;
             nota.NFe.infNFe.dest.enderDest.xPais = "BRASIL";
-            nota.NFe.infNFe.dest.enderDest.cPaisSpecified = true;            
+            nota.NFe.infNFe.dest.enderDest.cPaisSpecified = true;
             nota.NFe.infNFe.dest.enderDest.fone = GetValue(dadosDestinatario, "Telefone")
                 .Replace("(", string.Empty)
                 .Replace(")", string.Empty)
-                .Replace("-", string.Empty);           
+                .Replace("-", string.Empty);
         }
 
         private void UpdateProdutos(TNfeProc nota, IList<Produto> produtos)
@@ -276,33 +276,127 @@ namespace NFeDownload.NFe
                         detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
                         break;
                 }
-                icms.Item = detIcms;
-
-                
+                icms.Item = detIcms;                
                 tiposImposto.Add(icms);
-
-                det.imposto.Items = tiposImposto.ToArray();
-                
+                det.imposto.Items = tiposImposto.ToArray();        
+                //############################ PIS ############################
+                var pis = new TNFeInfNFeDetImpostoPIS();
+                var pisCST = new TNFeInfNFeDetImpostoPISPISNT();
+                var pCst = produto.PIS_CST.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
+                switch (pCst)
+                {
+                    case "04":
+                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item04;
+                        break;
+                    case "06":
+                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item06;
+                        break;
+                    case "07":
+                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item07;
+                        break;
+                    case "08":
+                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item08;
+                        break;
+                    case "09":
+                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item09;
+                        break;
+                    default:
+                        break;
+                }
+                pis.Item = pisCST;
+                det.imposto.PIS = pis;
+                //############################ COFINS ############################
+                det.imposto.COFINS = new TNFeInfNFeDetImpostoCOFINS();
+                var confinsNT = new TNFeInfNFeDetImpostoCOFINSCOFINSNT();
+                var cofinsCST = produto.COFINS_CST.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
+                switch (cofinsCST)
+                {
+                    case "04":
+                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item04;
+                        break;
+                    case "06":
+                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item06;
+                        break;
+                    case "07":
+                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item07;
+                        break;
+                    case "08":
+                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item08;
+                        break;
+                    case "09":
+                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item09;
+                        break;
+                }
+                det.imposto.COFINS.Item = confinsNT;              
                 itensNfe.Add(det);                
             }
             nota.NFe.infNFe.det = itensNfe.ToArray();
         }
 
+        private void UpdateTotais(TNfeProc nota, IList<PostResultItem> totais)
+        {
+            nota.NFe.infNFe.total = new TNFeInfNFeTotal();
+            nota.NFe.infNFe.total.ICMSTot = new TNFeInfNFeTotalICMSTot();
+            nota.NFe.infNFe.total.ICMSTot.vBC = GetValue(totais, "Base de Cálculo ICMS").Replace(",",".");
+            nota.NFe.infNFe.total.ICMSTot.vICMS = GetValue(totais, "Valor do ICMS").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vBCST = GetValue(totais, "Base de Cálculo ICMS ST").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vST = GetValue(totais, "Valor ICMS Substituição").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vProd = GetValue(totais, "Valor Total dos Produtos").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vFrete = GetValue(totais, "Valor do Frete").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vSeg = GetValue(totais, "Valor do Seguro").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vDesc = GetValue(totais, "Valor Total dos Descontos").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vII = GetValue(totais, "Valor Total do II").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vIPI = GetValue(totais, "Valor Total do IPI").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vPIS = GetValue(totais, "Valor do PIS").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vCOFINS = GetValue(totais, "Valor da COFINS").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vOutro = GetValue(totais, "Outras Despesas Acessórias").Replace(",", ".");
+            nota.NFe.infNFe.total.ICMSTot.vNF = GetValue(totais, "Valor Total da NFe").Replace(",", ".");
+            nota.NFe.infNFe.total.ISSQNtot = new TNFeInfNFeTotalISSQNtot();
+        }
+
+        private void UpdateTransporte(TNfeProc nota, IList<PostResultItem> itensTransporte)
+        {
+            nota.NFe.infNFe.transp = new TNFeInfNFeTransp();
+            var modFrete = GetValue(itensTransporte, "Modalidade do Frete").Split(new [] {"-"}, StringSplitOptions.None)[0].Trim();
+            switch (modFrete)
+            {
+                case "0":
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.PorContaEmitente;
+                    break;
+                case "1":
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.PorContaDestinatario;
+                    break;
+                case "2":
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.PorContaTerceiros;
+                    break;
+                case "9":
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.SemFrete;
+                    break;
+            }
+            nota.NFe.infNFe.transp.vol = null;
+        }
+
+        private void UpdateAdicionais(TNfeProc nota, IList<PostResultItem> adicionais)
+        {
+            nota.NFe.infNFe.infAdic = new TNFeInfNFeInfAdic();
+            nota.NFe.infNFe.infAdic.infCpl = GetValue(adicionais, "Descrição").Trim();
+        }
+
         private TCfop GetProdCfop(string cfop)
         {
-            TCfop result = TCfop.CFOP1101;            
-            var enumValues = Enum.GetValues(typeof(TCfop));            
+            TCfop result = TCfop.CFOP1101;
+            var enumValues = Enum.GetValues(typeof(TCfop));
             foreach (var enumVal in enumValues)
             {
                 var actualEnum = (TCfop)enumVal;
                 var descEnum = actualEnum.ToString2();
                 if (descEnum.Equals(cfop, StringComparison.OrdinalIgnoreCase))
-                    result = actualEnum;                
+                    result = actualEnum;
             }
             return result;
         }
 
-        private string GetValue(IList<PostResultItem> collection, string propertyName) 
+        private string GetValue(IList<PostResultItem> collection, string propertyName)
         {
             return collection.Where(d => d.AttributeName == propertyName).FirstOrDefault().AttributeValue;
         }
