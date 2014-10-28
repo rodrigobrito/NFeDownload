@@ -50,6 +50,7 @@
     <Compile Include="Download\PostItems.cs" />
     <Compile Include="Download\HtmlHelper.cs" />
     <Compile Include="Download\Produto.cs" />
+    <Compile Include="NFe\EnumExtensions.cs" />
     <Compile Include="NFe\NFeGenerator.cs" />
     <Compile Include="NFe\Serialize\Cancelamento\envEventoCancNFe_v1.00.Designer.cs" />
     <Compile Include="NFe\Serialize\Cancelamento\eventoCancNFe_v1.00.Designer.cs" />

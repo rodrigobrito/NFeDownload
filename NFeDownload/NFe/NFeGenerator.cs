@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using System.Threading;
+using System.Xml.Serialization;
 
 namespace NFeDownload.NFe
 {
@@ -32,9 +33,13 @@ namespace NFeDownload.NFe
 
             UpdateDadosEmitente(nota, downloadedData.DadosEmitente);
             UpdateDadosDestinatario(nota, downloadedData.DadosDestinatario);
+            UpdateProdutos(nota, downloadedData.Products);
+
          
             SaveXml(nota.Serialize(), directory);
         }
+
+     
 
         private XmlDocument SaveXml(string xml, string fileName)
         {
@@ -180,6 +185,121 @@ namespace NFeDownload.NFe
                 .Replace("(", string.Empty)
                 .Replace(")", string.Empty)
                 .Replace("-", string.Empty);           
+        }
+
+        private void UpdateProdutos(TNfeProc nota, IList<Produto> produtos)
+        {
+            var itensNfe = new List<TNFeInfNFeDet>();            
+            foreach (var produto in produtos)
+            {
+                var det = new TNFeInfNFeDet();
+                det.nItem = produto.Num;
+                det.prod = new TNFeInfNFeDetProd();
+                det.prod.cProd = produto.CodigoProduto;
+                det.prod.cEAN = produto.CodigoEANComercial;
+                det.prod.xProd = produto.Descricao;
+                det.prod.NCM = produto.CodigoNCM;
+                det.prod.CFOP = GetProdCfop(produto.CFOP);
+                det.prod.uCom = produto.UnidadeComercial;
+                det.prod.qCom = produto.QuantidadeComercial.Replace(",", ".");
+                det.prod.vUnCom = produto.ValorUnitarioComercializacao.Replace(",",".");
+                det.prod.vProd = produto.Valor.Replace(",", ".");
+                det.prod.cEANTrib = produto.CodigoEANTributavel;
+                det.prod.uTrib = produto.UnidadeTributavel;
+                det.prod.qTrib = produto.QuantidadeTributavel.Replace(",", "."); 
+                det.prod.vUnTrib = produto.ValorUnitarioTributacao.Replace(",", ".");
+                det.prod.indTot = int.Parse(produto.IndicadorComposicaoValorTotalNFe.Split(new [] {"-"}, StringSplitOptions.None)[0]) == 1 ? TNFeInfNFeDetProdIndTot.CompoeValorNota : TNFeInfNFeDetProdIndTot.NaoCompoeValorNota;
+                det.imposto = new TNFeInfNFeDetImposto();
+
+                var tiposImposto = new List<object>();
+
+                //############################ ICMS ############################
+                var tributacaoICMS = produto.TributacaoICMS.Split(new [] {"-"}, StringSplitOptions.None)[0].Trim();
+                var icms = new TNFeInfNFeDetImpostoICMS();                
+
+                object detIcms;
+                switch (tributacaoICMS)
+                {
+                    case "00":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS00();
+                        break;
+                    case "10":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS10();
+                        break;
+                    case "20":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS20();
+                        break;
+                    case "30":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS30();
+                        break;
+                    case "40":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
+                        //((TNFeInfNFeDetImpostoICMSICMS40)detIcms).orig =  Torig. produto.OrigemMercadoria;
+                        break;
+                    case "51":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS51();
+                        break;
+                    case "60":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS60();
+                        break;
+                    case "70":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS70();
+                        break;
+                    case "90":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS90();
+                        break;
+                    case "Part":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSPart();
+                        break;
+                    case "101":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN101();
+                        break;
+                    case "102":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN102();
+                        break;
+                    case "201":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN201();
+                        break;
+                    case "202":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN202();
+                        break;
+                    case "500":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN500();
+                        break;
+                    case "900":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN900();
+                        break;
+                    case "ST":
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMSST();
+                        break;
+                    default:
+                        detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
+                        break;
+                }
+                icms.Item = detIcms;
+
+                
+                tiposImposto.Add(icms);
+
+                det.imposto.Items = tiposImposto.ToArray();
+                
+                itensNfe.Add(det);                
+            }
+            nota.NFe.infNFe.det = itensNfe.ToArray();
+        }
+
+        private TCfop GetProdCfop(string cfop)
+        {
+            TCfop result = TCfop.CFOP1101;            
+            var enumValues = Enum.GetValues(typeof(TCfop));            
+            foreach (var enumVal in enumValues)
+            {
+                var actualEnum = (TCfop)enumVal;
+                var descEnum = actualEnum.ToString2();
+                if (descEnum.Equals(cfop, StringComparison.OrdinalIgnoreCase))
+                    result = actualEnum;                
+            }
+            return result;
         }
 
         private string GetValue(IList<PostResultItem> collection, string propertyName) 

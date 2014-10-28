@@ -35,25 +35,35 @@ namespace NFeDownloadForms
 
         private void SendButtonOnClick(object sender, EventArgs e)
         {
-            //try
-            //{
+            try
+            {
                 postItems.ChaveAcessoCompleta = nfeTextBox.Text;
                 postItems.Captcha = captchaTextBox.Text;
-
+                
                 helper.ValidatePost(postItems);
                 var postResult = helper.Post(postItems);
-                nfeGenerator.Generate(postResult, @"C:\Users\HP\Desktop\teste.xml");
-                
-                InitializeForPost();
-                captchaTextBox.Text = string.Empty;
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-            //    nfeTextBox.Focus();
-            //    InitializeForPost();
-            //}                                                             
+                SaveFileDialog sfileDialog = new SaveFileDialog();
+                sfileDialog.Filter = "Extensible Markup Language (*.xml)|*.xml";
+                sfileDialog.FilterIndex = 2;
+                sfileDialog.RestoreDirectory = true;
+                sfileDialog.FileName = string.Format("NFe{0}.xml", postItems.ChaveAcessoCompleta);
+
+                if (sfileDialog.ShowDialog() == DialogResult.OK)
+                {                 
+                    nfeGenerator.Generate(postResult, sfileDialog.FileName);
+
+                    InitializeForPost();
+                    captchaTextBox.Text = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                nfeTextBox.Focus();
+                InitializeForPost();
+            }                                                             
         }        
     }
 }
