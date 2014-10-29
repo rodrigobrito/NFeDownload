@@ -55,6 +55,8 @@ namespace NFeDownloadForms
 
                     InitializeForPost();
                     captchaTextBox.Text = string.Empty;
+                    nfeTextBox.Text = string.Empty;
+                    nfeTextBox.Focus();
                 }
             }
             catch (Exception ex)

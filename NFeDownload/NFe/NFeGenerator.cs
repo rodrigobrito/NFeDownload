@@ -101,7 +101,7 @@ namespace NFeDownload.NFe
             var dataEmissao = DateTime.Parse(dataEmissaoText);
 
             var dataHoraSaidaText = dadosNfe.Where(d => d.AttributeName == "Data/Hora  Saída/Entrada").FirstOrDefault();
-            var dataHoraSaida = DateTime.Parse(dataHoraSaidaText.AttributeValue.Replace("às", string.Empty).Replace("\r\n", string.Empty));
+            var dataHoraSaida = dataHoraSaidaText == null ? (DateTime?)null : DateTime.Parse(dataHoraSaidaText.AttributeValue.Replace("às", string.Empty).Replace("\r\n", string.Empty));
 
             nota.NFe.infNFe.ide = new TNFeInfNFeIde();
             nota.NFe.infNFe.ide.cUF = GetUF(dadosNfe.Where(a => a.AttributeName == "UF").FirstOrDefault().AttributeValue);
@@ -112,8 +112,8 @@ namespace NFeDownload.NFe
             nota.NFe.infNFe.ide.serie = dadosNfe.Where(d => d.AttributeName == "Série").FirstOrDefault().AttributeValue;
             nota.NFe.infNFe.ide.nNF = dadosNfe.Where(d => d.AttributeName == "Número").FirstOrDefault().AttributeValue;
             nota.NFe.infNFe.ide.dEmi = dataEmissao.ToString("yyyy-MM-dd");
-            nota.NFe.infNFe.ide.dSaiEnt = dataHoraSaida.ToString("yyyy-MM-dd");
-            nota.NFe.infNFe.ide.hSaiEnt = dataHoraSaida.ToString("hh:mm:ss");
+            nota.NFe.infNFe.ide.dSaiEnt = dataHoraSaida == null ? string.Empty : dataHoraSaida.Value.ToString("yyyy-MM-dd");
+            nota.NFe.infNFe.ide.hSaiEnt = dataHoraSaida == null ? string.Empty : dataHoraSaida.Value.ToString("hh:mm:ss");
             nota.NFe.infNFe.ide.tpNF = GetTpNF(dadosNfe.Where(d => d.AttributeName == "Tipo da Operação").FirstOrDefault().AttributeValue);
             nota.NFe.infNFe.ide.cMunFG = municipioEmitente;
             nota.NFe.infNFe.ide.tpImp = GetTpImp(formaImprPostResult.AttributeValue.Contains("retrato") ? 1 : 2);
@@ -398,7 +398,8 @@ namespace NFeDownload.NFe
 
         private string GetValue(IList<PostResultItem> collection, string propertyName)
         {
-            return collection.Where(d => d.AttributeName == propertyName).FirstOrDefault().AttributeValue;
+            var postResult = collection.Where(d => d.AttributeName == propertyName).FirstOrDefault();
+            return postResult == null ? string.Empty : postResult.AttributeValue;
         }
 
         private TCodUfIBGE GetUF(string uf)
