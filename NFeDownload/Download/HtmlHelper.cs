@@ -91,12 +91,7 @@ namespace NFeDownload.Download
             if (string.IsNullOrWhiteSpace(itemsForPost.ViewState))
             {
                 throw new InvalidOperationException("__VIEWSTATE deve possuir um valor!");
-            }
-
-            //if (string.IsNullOrWhiteSpace(itemsForPost.ViewStateGenerator))
-            //{
-            //    throw new InvalidOperationException("__VIEWSTATEGENERATOR deve possuir um valor!");
-            //}
+            }           
 
             if (string.IsNullOrWhiteSpace(itemsForPost.EventValidation))
             {
@@ -122,6 +117,12 @@ namespace NFeDownload.Download
             {
                 throw new InvalidOperationException("hiddenInputToUpdateATBuffer_CommonToolkitScripts possui um valor inválido.");
             }
+        }
+
+        private void Check(HtmlNode htmlNode)
+        {
+            if (htmlNode == null)
+                throw new NullReferenceException("Não foi possível obter os dados de http://www.nfe.fazenda.gov.br. Por favor, tente novamente.");
         }
 
         public DownloadedHtmlData Post(PostItems itemsForPost)
@@ -151,6 +152,11 @@ namespace NFeDownload.Download
                 throw new InvalidDataException("Código da Imagem inválido. Tente novamente.");
             }
 
+            if (documentText.Contains("NF-e INEXISTENTE na base nacional"))
+            {
+                throw new InvalidDataException("NF-e INEXISTENTE na base nacional.");
+            }
+
             var printRequest = (HttpWebRequest)WebRequest.Create("http://www.nfe.fazenda.gov.br/portal/consultaImpressao.aspx?tipoConsulta=completa");
             printRequest.CookieContainer = sessionCookie;
             ((HttpWebRequest)printRequest).UserAgent = UserAgent;
@@ -163,6 +169,7 @@ namespace NFeDownload.Download
 
             var result = new DownloadedHtmlData();
             var spanChaveAcesso = printUserPage.GetElementbyId("lblChaveAcesso");
+            Check(spanChaveAcesso);            
             result.ChaveAcessso = spanChaveAcesso.InnerText.Trim();
             result.DadosNfe = GetDataItems(printUserPage, "NFe");
             var operationScience = printUserPage.DocumentNode.Descendants().Where(e => e.Id.Contains("CienciaOperacao")).ToList();
@@ -212,6 +219,7 @@ namespace NFeDownload.Download
             var dataItems = new List<PostResultItem>();
             var tablesWorked = new List<HtmlNode>();
             var nfeDiv = doc.GetElementbyId(div);
+            Check(nfeDiv);
 
             var count = 1;
             foreach (var fieldset in nfeDiv.Descendants().Where(d => d.Name.ToLower() == "fieldset").ToList())

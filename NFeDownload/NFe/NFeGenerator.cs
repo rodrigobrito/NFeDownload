@@ -214,121 +214,131 @@ namespace NFeDownload.NFe
                 var tiposImposto = new List<object>();
 
                 //############################ ICMS ############################
-                var tributacaoICMS = produto.TributacaoICMS.Split(new [] {"-"}, StringSplitOptions.None)[0].Trim();
-                var icms = new TNFeInfNFeDetImpostoICMS();                
+                if (!string.IsNullOrWhiteSpace(produto.TributacaoICMS))
+                {
 
-                object detIcms;
-                switch (tributacaoICMS)
-                {
-                    case "00":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS00();
-                        break;
-                    case "10":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS10();
-                        break;
-                    case "20":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS20();
-                        break;
-                    case "30":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS30();
-                        break;
-                    case "40":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
-                        //((TNFeInfNFeDetImpostoICMSICMS40)detIcms).orig =  Torig. produto.OrigemMercadoria;
-                        break;
-                    case "51":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS51();
-                        break;
-                    case "60":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS60();
-                        break;
-                    case "70":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS70();
-                        break;
-                    case "90":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS90();
-                        break;
-                    case "Part":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSPart();
-                        break;
-                    case "101":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN101();
-                        break;
-                    case "102":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN102();
-                        break;
-                    case "201":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN201();
-                        break;
-                    case "202":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN202();
-                        break;
-                    case "500":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN500();
-                        break;
-                    case "900":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSSN900();
-                        break;
-                    case "ST":
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMSST();
-                        break;
-                    default:
-                        detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
-                        break;
+                    var tributacaoICMS = produto.TributacaoICMS.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
+                    var icms = new TNFeInfNFeDetImpostoICMS();
+
+                    object detIcms;
+                    switch (tributacaoICMS)
+                    {
+                        case "00":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS00();
+                            break;
+                        case "10":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS10();
+                            break;
+                        case "20":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS20();
+                            break;
+                        case "30":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS30();
+                            break;
+                        case "40":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
+                            //((TNFeInfNFeDetImpostoICMSICMS40)detIcms).orig =  Torig. produto.OrigemMercadoria;
+                            break;
+                        case "51":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS51();
+                            break;
+                        case "60":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS60();
+                            break;
+                        case "70":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS70();
+                            break;
+                        case "90":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS90();
+                            break;
+                        case "Part":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSPart();
+                            break;
+                        case "101":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSSN101();
+                            break;
+                        case "102":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSSN102();
+                            break;
+                        case "201":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSSN201();
+                            break;
+                        case "202":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSSN202();
+                            break;
+                        case "500":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSSN500();
+                            break;
+                        case "900":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSSN900();
+                            break;
+                        case "ST":
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMSST();
+                            break;
+                        default:
+                            detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
+                            break;
+                    }
+                    icms.Item = detIcms;
+                    tiposImposto.Add(icms);
+                    det.imposto.Items = tiposImposto.ToArray();
                 }
-                icms.Item = detIcms;                
-                tiposImposto.Add(icms);
-                det.imposto.Items = tiposImposto.ToArray();        
                 //############################ PIS ############################
-                var pis = new TNFeInfNFeDetImpostoPIS();
-                var pisCST = new TNFeInfNFeDetImpostoPISPISNT();
-                var pCst = produto.PIS_CST.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
-                switch (pCst)
+                if (!string.IsNullOrWhiteSpace(produto.PIS_CST))
                 {
-                    case "04":
-                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item04;
-                        break;
-                    case "06":
-                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item06;
-                        break;
-                    case "07":
-                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item07;
-                        break;
-                    case "08":
-                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item08;
-                        break;
-                    case "09":
-                        pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item09;
-                        break;
-                    default:
-                        break;
+                    var pis = new TNFeInfNFeDetImpostoPIS();
+                    var pisCST = new TNFeInfNFeDetImpostoPISPISNT();
+                    var pCst = produto.PIS_CST.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
+                    switch (pCst)
+                    {
+                        case "04":
+                            pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item04;
+                            break;
+                        case "06":
+                            pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item06;
+                            break;
+                        case "07":
+                            pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item07;
+                            break;
+                        case "08":
+                            pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item08;
+                            break;
+                        case "09":
+                            pisCST.CST = TNFeInfNFeDetImpostoPISPISNTCST.Item09;
+                            break;
+                        default:
+                            break;
+                    }
+                    pis.Item = pisCST;
+                    det.imposto.PIS = pis;
                 }
-                pis.Item = pisCST;
-                det.imposto.PIS = pis;
                 //############################ COFINS ############################
-                det.imposto.COFINS = new TNFeInfNFeDetImpostoCOFINS();
-                var confinsNT = new TNFeInfNFeDetImpostoCOFINSCOFINSNT();
-                var cofinsCST = produto.COFINS_CST.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
-                switch (cofinsCST)
+                if (!string.IsNullOrWhiteSpace(produto.COFINS_CST))
                 {
-                    case "04":
-                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item04;
-                        break;
-                    case "06":
-                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item06;
-                        break;
-                    case "07":
-                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item07;
-                        break;
-                    case "08":
-                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item08;
-                        break;
-                    case "09":
-                        confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item09;
-                        break;
+                    det.imposto.COFINS = new TNFeInfNFeDetImpostoCOFINS();
+                    var confinsNT = new TNFeInfNFeDetImpostoCOFINSCOFINSNT();
+                    var cofinsCST = produto.COFINS_CST.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
+                    switch (cofinsCST)
+                    {
+                        case "04":
+                            confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item04;
+                            break;
+                        case "06":
+                            confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item06;
+                            break;
+                        case "07":
+                            confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item07;
+                            break;
+                        case "08":
+                            confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item08;
+                            break;
+                        case "09":
+                            confinsNT.CST = TNFeInfNFeDetImpostoCOFINSCOFINSNTCST.Item09;
+                            break;
+                    }
+                    det.imposto.COFINS.Item = confinsNT;
+                    itensNfe.Add(det);
                 }
-                det.imposto.COFINS.Item = confinsNT;              
-                itensNfe.Add(det);                
             }
             nota.NFe.infNFe.det = itensNfe.ToArray();
         }
