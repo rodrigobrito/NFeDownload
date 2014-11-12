@@ -1,18 +1,17 @@
 ﻿using NFeDownload.Download;
-using NFeDownload.NFe.Serialize;
-using NFeDownload.NFe.Serialize.TiposBasicos;
-using NFeDownload.NFe.Util;
+using NFeDownload.NFe;
+using NFeDownload.NFe.SchemaXML;
+using NFeDownload.NFe.SchemaXML200;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using System.Xml;
 using System.Linq;
-using System.Collections.Generic;
-using System;
+using System.Text;
 using System.Threading;
-using System.Xml.Serialization;
+using System.Xml;
 
-namespace NFeDownload.NFe
+namespace NFeDownload
 {
     public class NFeGenerator
     {
@@ -79,16 +78,13 @@ namespace NFeDownload.NFe
         {
 
             var chaveNfe = chave.Replace("-", string.Empty).Replace(".", string.Empty).Replace("/", string.Empty);
+             
 
             var versaoNfe = "2.00";
             var cNF = chaveNfe.Substring(35, 8);
             var cDV = chave.Split(new[] { "-" }, StringSplitOptions.None)[8];
-            var indPag = int.Parse(dadosNfe.Where(d => d.AttributeName == "Forma de Pagamento").FirstOrDefault().AttributeValue.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim());
-            var formaImprPostResult = dadosAdicionais.Where(d => d.AttributeName == "Formato de Impressão DANFE").FirstOrDefault();
-            var municipioEmitente = dadosEmitente.Where(d => d.AttributeName == "Município").FirstOrDefault().AttributeValue.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
-            var tipoEmissaoPostResult = dadosNfe.Where(d => d.AttributeName == "Tipo de Emissão").FirstOrDefault();
-            var finalidadePostResult = dadosNfe.Where(d => d.AttributeName == "Finalidade").FirstOrDefault();
-            var procEmiPostResult = dadosNfe.Where(d => d.AttributeName == "Processo").FirstOrDefault();
+            var indPag = int.Parse(GetValue(dadosNfe, "Forma de Pagamento").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim());            
+            var municipioEmitente = GetValue(dadosEmitente, "Município").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();                        
 
             nota.NFe = new TNFe();
             nota.versao = versaoNfe;
@@ -97,38 +93,38 @@ namespace NFeDownload.NFe
             nota.NFe.infNFe.versao = versaoNfe;
             nota.NFe.infNFe.Id = "NFe" + chaveNfe;
 
-            var dataEmissaoText = dadosNfe.Where(d => d.AttributeName == "Data de Emissão").FirstOrDefault().AttributeValue;
+            var dataEmissaoText = GetValue(dadosNfe, "Data de Emissão");
             var dataEmissao = DateTime.Parse(dataEmissaoText);
 
-            var dataHoraSaidaText = dadosNfe.Where(d => d.AttributeName == "Data/Hora  Saída/Entrada").FirstOrDefault();
-            var dataHoraSaida = dataHoraSaidaText == null ? (DateTime?)null : DateTime.Parse(dataHoraSaidaText.AttributeValue.Replace("às", string.Empty).Replace("\r\n", string.Empty));
+            var dataHoraSaidaText = GetValue(dadosNfe, "Data/Hora  Saída/Entrada");
+            var dataHoraSaida = dataHoraSaidaText == null ? (DateTime?)null : DateTime.Parse(dataHoraSaidaText.Replace("às", string.Empty).Replace("\r\n", string.Empty));
 
             nota.NFe.infNFe.ide = new TNFeInfNFeIde();
             nota.NFe.infNFe.ide.cUF = GetUF(dadosNfe.Where(a => a.AttributeName == "UF").FirstOrDefault().AttributeValue);
             nota.NFe.infNFe.ide.cNF = cNF;
-            nota.NFe.infNFe.ide.natOp = dadosNfe.Where(d => d.AttributeName == "Natureza da Operação").FirstOrDefault().AttributeValue;
+            nota.NFe.infNFe.ide.natOp = GetValue(dadosNfe, "Natureza da Operação");
             nota.NFe.infNFe.ide.indPag = GetIndPag(indPag);
-            nota.NFe.infNFe.ide.mod = TMod.NotaFiscalEletronica;
-            nota.NFe.infNFe.ide.serie = dadosNfe.Where(d => d.AttributeName == "Série").FirstOrDefault().AttributeValue;
-            nota.NFe.infNFe.ide.nNF = dadosNfe.Where(d => d.AttributeName == "Número").FirstOrDefault().AttributeValue;
+            nota.NFe.infNFe.ide.mod = TMod.Item55;
+            nota.NFe.infNFe.ide.serie = GetValue(dadosNfe, "Série");
+            nota.NFe.infNFe.ide.nNF = GetValue(dadosNfe, "Número");
             nota.NFe.infNFe.ide.dEmi = dataEmissao.ToString("yyyy-MM-dd");
             nota.NFe.infNFe.ide.dSaiEnt = dataHoraSaida == null ? string.Empty : dataHoraSaida.Value.ToString("yyyy-MM-dd");
             nota.NFe.infNFe.ide.hSaiEnt = dataHoraSaida == null ? string.Empty : dataHoraSaida.Value.ToString("hh:mm:ss");
-            nota.NFe.infNFe.ide.tpNF = GetTpNF(dadosNfe.Where(d => d.AttributeName == "Tipo da Operação").FirstOrDefault().AttributeValue);
+            nota.NFe.infNFe.ide.tpNF = GetTpNF(GetValue(dadosNfe, "Tipo da Operação"));
             nota.NFe.infNFe.ide.cMunFG = municipioEmitente;
-            nota.NFe.infNFe.ide.tpImp = GetTpImp(formaImprPostResult.AttributeValue.Contains("retrato") ? 1 : 2);
-            nota.NFe.infNFe.ide.tpEmis = GetTpEmis(int.Parse(tipoEmissaoPostResult.AttributeValue.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
+            nota.NFe.infNFe.ide.tpImp = GetTpImp(GetValue(dadosAdicionais, "Formato de Impressão DANFE").Contains("retrato") ? 1 : 2);
+            nota.NFe.infNFe.ide.tpEmis = GetTpEmis(int.Parse(GetValue(dadosNfe, "Tipo de Emissão").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
             nota.NFe.infNFe.ide.cDV = cDV;
             nota.NFe.infNFe.ide.tpAmb = GetTpAmb(dadosNfe.Where(d => d.Legend.Contains("produção")).Any() ? 1 : 2);
-            nota.NFe.infNFe.ide.finNFe = GetFinNFe(int.Parse(finalidadePostResult.AttributeValue.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
-            nota.NFe.infNFe.ide.procEmi = GetProcEmi(int.Parse(procEmiPostResult.AttributeValue.Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
-            nota.NFe.infNFe.ide.verProc = dadosNfe.Where(d => d.AttributeName.Contains("Versão do Processo")).FirstOrDefault().AttributeValue.Trim();
+            nota.NFe.infNFe.ide.finNFe = GetFinNFe(int.Parse(GetValue(dadosNfe, "Finalidade").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
+            nota.NFe.infNFe.ide.procEmi = GetProcEmi(int.Parse(GetValue(dadosNfe, "Processo").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim()));
+            nota.NFe.infNFe.ide.verProc = GetValue(dadosNfe, "Versão do Processo").Trim();
         }
 
         private void UpdateDadosEmitente(TNfeProc nota, IList<PostResultItem> dadosEmitente)
         {
             nota.NFe.infNFe.emit = new TNFeInfNFeEmit();
-            nota.NFe.infNFe.emit.ItemElementName = TipoDocumentoEmitente.CNPJ;
+            nota.NFe.infNFe.emit.ItemElementName = ITCTypeCNPJCPF.CNPJ; 
             nota.NFe.infNFe.emit.Item = GetValue(dadosEmitente, "CNPJ")
                 .Replace(".", string.Empty)
                 .Replace("/", string.Empty)
@@ -150,7 +146,7 @@ namespace NFeDownload.NFe
             nota.NFe.infNFe.emit.enderEmit.xMun = GetValue(dadosEmitente, "Município").Split(new[] { "-" }, StringSplitOptions.None)[1].Trim(); ;
             nota.NFe.infNFe.emit.enderEmit.UF = GetUFEmi(GetValue(dadosEmitente, "UF"));
             nota.NFe.infNFe.emit.enderEmit.CEP = GetValue(dadosEmitente, "CEP").Replace("-", string.Empty);
-            nota.NFe.infNFe.emit.enderEmit.cPais = TEnderEmiCPais.Brasil;
+            nota.NFe.infNFe.emit.enderEmit.cPais = TEnderEmiCPais.Item1058;
             nota.NFe.infNFe.emit.enderEmit.xPais = TEnderEmiXPais.BRASIL;
             nota.NFe.infNFe.emit.enderEmit.fone = GetValue(dadosEmitente, "Telefone")
                 .Replace("(", string.Empty)
@@ -161,7 +157,7 @@ namespace NFeDownload.NFe
         private void UpdateDadosDestinatario(TNfeProc nota, IList<PostResultItem> dadosDestinatario)
         {
             nota.NFe.infNFe.dest = new TNFeInfNFeDest();
-            nota.NFe.infNFe.dest.ItemElementName = TipoDocumentoDest.CNPJ;
+            nota.NFe.infNFe.dest.ItemElementName = ITCTypeCNPJCPF.CNPJ;
             nota.NFe.infNFe.dest.Item = GetValue(dadosDestinatario, "CNPJ")
                 .Replace(".", string.Empty)
                 .Replace("/", string.Empty)
@@ -178,9 +174,8 @@ namespace NFeDownload.NFe
             nota.NFe.infNFe.dest.enderDest.xMun = GetValue(dadosDestinatario, "Município").Split(new[] { "-" }, StringSplitOptions.None)[1].Trim(); ;
             nota.NFe.infNFe.dest.enderDest.UF = GetTUF(GetValue(dadosDestinatario, "UF"));
             nota.NFe.infNFe.dest.enderDest.CEP = GetValue(dadosDestinatario, "CEP").Replace("-", string.Empty);
-            nota.NFe.infNFe.dest.enderDest.cPais = Tpais.Item1058;
-            nota.NFe.infNFe.dest.enderDest.xPais = "BRASIL";
-            nota.NFe.infNFe.dest.enderDest.cPaisSpecified = true;
+            nota.NFe.infNFe.dest.enderDest.cPais = "BR";
+            nota.NFe.infNFe.dest.enderDest.xPais = "BRASIL";            
             nota.NFe.infNFe.dest.enderDest.fone = GetValue(dadosDestinatario, "Telefone")
                 .Replace("(", string.Empty)
                 .Replace(")", string.Empty)
@@ -208,7 +203,7 @@ namespace NFeDownload.NFe
                 det.prod.uTrib = produto.UnidadeTributavel;
                 det.prod.qTrib = produto.QuantidadeTributavel.Replace(",", "."); 
                 det.prod.vUnTrib = produto.ValorUnitarioTributacao.Replace(",", ".");
-                det.prod.indTot = int.Parse(produto.IndicadorComposicaoValorTotalNFe.Split(new [] {"-"}, StringSplitOptions.None)[0]) == 1 ? TNFeInfNFeDetProdIndTot.CompoeValorNota : TNFeInfNFeDetProdIndTot.NaoCompoeValorNota;
+                det.prod.indTot = int.Parse(produto.IndicadorComposicaoValorTotalNFe.Split(new[] { "-" }, StringSplitOptions.None)[0]) == 1 ? TNFeInfNFeDetProdIndTot.Item1 : TNFeInfNFeDetProdIndTot.Item0;
                 det.imposto = new TNFeInfNFeDetImposto();
 
                 var tiposImposto = new List<object>();
@@ -371,16 +366,16 @@ namespace NFeDownload.NFe
             switch (modFrete)
             {
                 case "0":
-                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.PorContaEmitente;
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.Item0;
                     break;
                 case "1":
-                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.PorContaDestinatario;
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.Item1;
                     break;
                 case "2":
-                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.PorContaTerceiros;
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.Item2;
                     break;
                 case "9":
-                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.SemFrete;
+                    nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.Item9;
                     break;
             }
             nota.NFe.infNFe.transp.vol = null;
@@ -394,7 +389,7 @@ namespace NFeDownload.NFe
 
         private TCfop GetProdCfop(string cfop)
         {
-            TCfop result = TCfop.CFOP1101;
+            TCfop result = TCfop.Item1101;
             var enumValues = Enum.GetValues(typeof(TCfop));
             foreach (var enumVal in enumValues)
             {
@@ -409,7 +404,7 @@ namespace NFeDownload.NFe
         private string GetValue(IList<PostResultItem> collection, string propertyName)
         {
             var postResult = collection.Where(d => d.AttributeName == propertyName).FirstOrDefault();
-            return postResult == null ? string.Empty : postResult.AttributeValue;
+            return postResult == null ? string.Empty : postResult.AttributeValue.Replace("\r", string.Empty).Replace("\n", string.Empty);
         }
 
         private TCodUfIBGE GetUF(string uf)
@@ -451,7 +446,7 @@ namespace NFeDownload.NFe
                     result = TCodUfIBGE.MatoGrosso;
                     break;
                 case "MS":
-                    result = TCodUfIBGE.MatoGrossoDoSul;
+                    result = TCodUfIBGE.MatoGrossodoSul;
                     break;
                 case "MG":
                     result = TCodUfIBGE.MinasGerais;
@@ -472,13 +467,13 @@ namespace NFeDownload.NFe
                     result = TCodUfIBGE.Piaui;
                     break;
                 case "RJ":
-                    result = TCodUfIBGE.RioDeJaneiro;
+                    result = TCodUfIBGE.RiodeJaneiro;
                     break;
                 case "RN":
-                    result = TCodUfIBGE.RioGrandeDoNorte;
+                    result = TCodUfIBGE.RioGrandedoNorte;
                     break;
                 case "RS":
-                    result = TCodUfIBGE.RioGrandeDoSul;
+                    result = TCodUfIBGE.RioGrandedoSul;
                     break;
                 case "RO":
                     result = TCodUfIBGE.Rondonia;
@@ -496,7 +491,7 @@ namespace NFeDownload.NFe
                     result = TCodUfIBGE.Sergipe;
                     break;
                 case "TO":
-                    result = TCodUfIBGE.Tocantis;
+                    result = TCodUfIBGE.Tocantins;
                     break;
             }
             return result;
@@ -504,18 +499,18 @@ namespace NFeDownload.NFe
 
         private TNFeInfNFeIdeIndPag GetIndPag(int indPag)
         {
-            var result = TNFeInfNFeIdeIndPag.aVista;
+            var result = TNFeInfNFeIdeIndPag.Item0;
 
             switch (indPag)
             {
                 case 0:
-                    result = TNFeInfNFeIdeIndPag.aVista;
+                    result = TNFeInfNFeIdeIndPag.Item0;
                     break;
                 case 1:
-                    result = TNFeInfNFeIdeIndPag.aPrazo;
+                    result = TNFeInfNFeIdeIndPag.Item1;
                     break;
                 case 2:
-                    result = TNFeInfNFeIdeIndPag.Outros;
+                    result = TNFeInfNFeIdeIndPag.Item2;
                     break;
             }
 
@@ -524,15 +519,15 @@ namespace NFeDownload.NFe
 
         private TNFeInfNFeIdeTpNF GetTpNF(string tpNF)
         {
-            var result = TNFeInfNFeIdeTpNF.Saida;
+            var result = TNFeInfNFeIdeTpNF.Item1;
 
             switch (tpNF.Trim())
             {
                 case "0 - Entrada":
-                    result = TNFeInfNFeIdeTpNF.Entrada;
+                    result = TNFeInfNFeIdeTpNF.Item0;
                     break;
                 case "1 - Saída":
-                    result = TNFeInfNFeIdeTpNF.Saida;
+                    result = TNFeInfNFeIdeTpNF.Item1;
                     break;
             }
 
@@ -541,15 +536,15 @@ namespace NFeDownload.NFe
 
         private TNFeInfNFeIdeTpImp GetTpImp(int tpImp)
         {
-            var result = TNFeInfNFeIdeTpImp.Retrato;
+            var result = TNFeInfNFeIdeTpImp.Item1;
 
             switch (tpImp)
             {
                 case 1:
-                    result = TNFeInfNFeIdeTpImp.Retrato;
+                    result = TNFeInfNFeIdeTpImp.Item1;
                     break;
                 case 2:
-                    result = TNFeInfNFeIdeTpImp.Paisagem;
+                    result = TNFeInfNFeIdeTpImp.Item2;
                     break;
             }
 
@@ -578,10 +573,10 @@ namespace NFeDownload.NFe
                     result = TNFeInfNFeIdeTpEmis.ContigenciaFSDA;
                     break;
                 case 6:
-                    result = TNFeInfNFeIdeTpEmis.ContigenciaSVCAN;
+                    result = TNFeInfNFeIdeTpEmis.ContingenciaSVCAN;
                     break;
                 case 7:
-                    result = TNFeInfNFeIdeTpEmis.ContigenciaSVCRS;
+                    result = TNFeInfNFeIdeTpEmis.ContingenciaSVCRS;
                     break;
             }
 
@@ -605,17 +600,17 @@ namespace NFeDownload.NFe
 
         private TFinNFe GetFinNFe(int finNfe)
         {
-            var result = TFinNFe.Normal;
+            var result = TFinNFe.Item1;
             switch (finNfe)
             {
                 case 1:
-                    result = TFinNFe.Normal;
+                    result = TFinNFe.Item1;
                     break;
                 case 2:
-                    result = TFinNFe.Complementar;
+                    result = TFinNFe.Item2;
                     break;
                 case 3:
-                    result = TFinNFe.Ajuste;
+                    result = TFinNFe.Item3;
                     break;
             }
             return result;
@@ -736,17 +731,17 @@ namespace NFeDownload.NFe
 
         private TNFeInfNFeEmitCRT GetCrtEmit(int xCRTEmit)
         {
-            var result = TNFeInfNFeEmitCRT.crtRegimeNormal;
+            var result = TNFeInfNFeEmitCRT.Item3;
             switch (xCRTEmit)
             {
                 case 1:
-                    result = TNFeInfNFeEmitCRT.crtSimplesNacional;
+                    result = TNFeInfNFeEmitCRT.Item1;
                     break;
                 case 2:
-                    result = TNFeInfNFeEmitCRT.crtSimplesExcessoReceita;
+                    result = TNFeInfNFeEmitCRT.Item2;
                     break;
                 case 3:
-                    result = TNFeInfNFeEmitCRT.crtRegimeNormal;
+                    result = TNFeInfNFeEmitCRT.Item3;
                     break;
             }
             return result;

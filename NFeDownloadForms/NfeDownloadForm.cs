@@ -1,5 +1,5 @@
-﻿using NFeDownload.Download;
-using NFeDownload.NFe;
+﻿using NFeDownload;
+using NFeDownload.Download;
 using System;
 using System.Windows.Forms;
 
