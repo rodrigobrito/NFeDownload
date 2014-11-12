@@ -59,6 +59,7 @@
     <Compile Include="NFe\SchemaXML\SchemaXML200.cs" />
     <Compile Include="NFe\SchemaXML\SchemaXML300.cs" />
     <Compile Include="NFe\SchemaXML\SchemaXML310.cs" />
+    <Compile Include="NFe\Util.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

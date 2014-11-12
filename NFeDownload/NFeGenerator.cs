@@ -37,7 +37,7 @@ namespace NFeDownload
             UpdateTransporte(nota, downloadedData.DadosTransporte);
             UpdateAdicionais(nota, downloadedData.InformacoesAdicionais);
 
-            SaveXml(nota.Serialize(), directory);
+            //SaveXml(nota.Serialize(), directory);
         }
 
         private XmlDocument SaveXml(string xml, string fileName)
