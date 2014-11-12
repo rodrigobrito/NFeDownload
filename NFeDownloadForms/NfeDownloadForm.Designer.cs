@@ -52,6 +52,7 @@
             this.nfeTextBox.Name = "nfeTextBox";
             this.nfeTextBox.Size = new System.Drawing.Size(276, 20);
             this.nfeTextBox.TabIndex = 1;
+            this.nfeTextBox.Text = "35140859357749000133550010000258671457870645";
             // 
             // captchaPictureBox
             // 

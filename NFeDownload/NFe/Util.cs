@@ -6,17 +6,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace NFeDownload.NFe
 {
     public class Util
     {
+        private static XmlSerializer serializer;
+
         #region Serialize/Deserialize
+
+        private static System.Xml.Serialization.XmlSerializer Serializer
+        {
+            get
+            {
+                if ((serializer == null))
+                {
+                    serializer = new System.Xml.Serialization.XmlSerializer(typeof(TNfeProc));
+                }
+                return serializer;
+            }
+        }
+
         /// <summary>
         /// Serializes current TNfeProc object into an XML document
         /// </summary>
         /// <returns>string XML value</returns>
-        public virtual string Serialize(TNfeProc nfe, System.Text.Encoding encoding)
+        public static string Serialize(TNfeProc nfe, System.Text.Encoding encoding)
         {
             System.IO.StreamReader streamReader = null;
             System.IO.MemoryStream memoryStream = null;
@@ -44,7 +60,7 @@ namespace NFeDownload.NFe
             }
         }
 
-        public virtual string Serialize(TNfeProc nfe)
+        public static string Serialize(TNfeProc nfe)
         {
             return Serialize(nfe, Encoding.UTF8);
         }
@@ -211,6 +227,24 @@ namespace NFeDownload.NFe
                 }
             }
         }
+        #endregion
+
+        #region Converting a string to byte-array
+
+        public static byte[] GetBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        public static string GetString(byte[] bytes)
+        {
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
+        }
+
         #endregion
     }
 }
