@@ -91,7 +91,7 @@ namespace NFeDownload.Download
             if (string.IsNullOrWhiteSpace(itemsForPost.ViewState))
             {
                 throw new InvalidOperationException("__VIEWSTATE deve possuir um valor!");
-            }           
+            }
 
             if (string.IsNullOrWhiteSpace(itemsForPost.EventValidation))
             {
@@ -169,7 +169,7 @@ namespace NFeDownload.Download
 
             var result = new DownloadedHtmlData();
             var spanChaveAcesso = printUserPage.GetElementbyId("lblChaveAcesso");
-            Check(spanChaveAcesso);            
+            Check(spanChaveAcesso);
             result.ChaveAcessso = spanChaveAcesso.InnerText.Trim();
             result.DadosNfe = GetDataItems(printUserPage, "NFe");
             var operationScience = printUserPage.DocumentNode.Descendants().Where(e => e.Id.Contains("CienciaOperacao")).ToList();
@@ -187,7 +187,7 @@ namespace NFeDownload.Download
             result.DadosTransporte = GetDataItems(printUserPage, "Transporte");
             result.DadosCobranca = GetDataItems(printUserPage, "Cobranca");
             result.InformacoesAdicionais = GetDataItems(printUserPage, "Inf");
-            result.NotaFiscalAvulsa = GetDataItems(printUserPage, "Avulsa");            
+            result.NotaFiscalAvulsa = GetDataItems(printUserPage, "Avulsa");
 
             return result;
         }
@@ -350,21 +350,21 @@ namespace NFeDownload.Download
                     var tablesToRemove = new List<HtmlNode>();
                     foreach (var detailTable in detailTables)
                     {
-                         var trs = detailTable.Descendants().Where(e => e.Name.ToLower() == "tr").ToList();
-                         foreach (var tr in trs)
-                         {
-                              var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
-                              foreach (var td in tds)
-                              {
-                                  var subDetailTables = td.Descendants().Where(e => e.Name.ToLower() == "table"
-                                  && e.GetAttributeValue("class", "novalue") == "box").ToList();
-                                  foreach (var tableDetail in subDetailTables)
-                                      tablesToRemove.Add(tableDetail);
-                              }
-                         }
+                        var trs = detailTable.Descendants().Where(e => e.Name.ToLower() == "tr").ToList();
+                        foreach (var tr in trs)
+                        {
+                            var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
+                            foreach (var td in tds)
+                            {
+                                var subDetailTables = td.Descendants().Where(e => e.Name.ToLower() == "table"
+                                && e.GetAttributeValue("class", "novalue") == "box").ToList();
+                                foreach (var tableDetail in subDetailTables)
+                                    tablesToRemove.Add(tableDetail);
+                            }
+                        }
                     }
 
-                    foreach(var removeTable in tablesToRemove)
+                    foreach (var removeTable in tablesToRemove)
                     {
                         detailTables.Remove(removeTable);
                     }
@@ -463,6 +463,7 @@ namespace NFeDownload.Download
 
                                             if (columnLabel != null && columnSpan != null && !string.IsNullOrWhiteSpace(columnLabel.InnerText))
                                             {
+                                                var legend = td.Descendants().Where(e => e.Name.ToLower() == "legend").FirstOrDefault();
                                                 switch (columnLabel.InnerText.Trim())
                                                 {
                                                     case "Origem da Mercadoria":
@@ -471,11 +472,36 @@ namespace NFeDownload.Download
                                                     case "Tributação do ICMS":
                                                         product.TributacaoICMS = columnSpan.InnerText.Trim();
                                                         break;
+                                                    case "Modalidade Definição da BC ICMS NORMAL":
+                                                        product.modBC = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Base de Cálculo do ICMS Normal":
+                                                        product.vBC = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Alíquota do ICMS Normal":
+                                                        product.pICMS = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Valor do ICMS Normal":
+                                                        product.vICMS = columnSpan.InnerText.Trim();
+                                                        break;
                                                     case "Valor ICMS desoneração":
                                                         product.ValorICMSDesoneracao = columnSpan.InnerText.Trim();
                                                         break;
+                                                    case "Código de Enquadramento":
+                                                        product.cEnq = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Base de Cálculo":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.IPI_vBC = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Alíquota":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.IPI_pIpi = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Valor IPI":
+                                                        product.IPI_vIpi = columnSpan.InnerText.Trim();
+                                                        break;
                                                     case "CST":
-                                                        var legend = td.Descendants().Where(e => e.Name.ToLower() == "legend").FirstOrDefault();
                                                         if (legend != null)
                                                         {
                                                             switch (legend.InnerText.Trim())
@@ -486,17 +512,20 @@ namespace NFeDownload.Download
                                                                 case "COFINS":
                                                                     product.COFINS_CST = columnSpan.InnerText.Trim();
                                                                     break;
-                                                            }                                                            
-                                                        }                                                        
+                                                                case "ICMS Normal e ST":
+                                                                    product.IPI_CST = columnSpan.InnerText.Trim();
+                                                                    break;
+                                                            }
+                                                        }
                                                         break;
                                                 }
                                             }
                                         }
                                     }
-                                    subTable.Remove();                                    
+                                    subTable.Remove();
                                 }
                             }
-                        }                       
+                        }
                     }
                     products.Add(product);
                 }

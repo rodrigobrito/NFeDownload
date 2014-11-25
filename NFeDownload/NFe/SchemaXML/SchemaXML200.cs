@@ -15520,6 +15520,7 @@ namespace NFeDownload.NFe.SchemaXML200
         }
 
         /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.portalfiscal.inf.br/nfe")]
         public TProtNFe protNFe
         {
             get

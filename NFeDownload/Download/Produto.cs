@@ -2,6 +2,12 @@
 {
     public class Produto
     {
+        public Produto()
+        {
+            IPI_pIpi = "0";
+            IPI_vIpi = "0";
+        }
+
         public string Num { get; set; }
         public string Descricao { get; set; }
         public string Qtd { get; set; }
@@ -36,9 +42,23 @@
 
         public string OrigemMercadoria { get; set; }
         public string TributacaoICMS { get; set; }
+        public string modBC { get; set; }
+        public string vBC { get; set; }
+        public string pICMS { get; set; }
+        public string vICMS { get; set; }
         public string ValorICMSDesoneracao { get; set; }
 
         public string PIS_CST { get; set; }
         public string COFINS_CST { get; set; }
+
+        public string IPI_CST { get; set; }
+
+        public string cEnq { get; set; }
+
+        public string IPI_vBC { get; set; }
+
+        public string IPI_pIpi { get; set; }
+
+        public string IPI_vIpi { get; set; }
     }
 }
