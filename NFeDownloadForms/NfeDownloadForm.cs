@@ -35,8 +35,8 @@ namespace NFeDownloadForms
 
         private void SendButtonOnClick(object sender, EventArgs e)
         {
-            try
-            {
+            //try
+            //{
                 postItems.ChaveAcessoCompleta = nfeTextBox.Text;
                 postItems.Captcha = captchaTextBox.Text;
 
@@ -58,14 +58,14 @@ namespace NFeDownloadForms
                     nfeTextBox.Text = string.Empty;
                     nfeTextBox.Focus();
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-                nfeTextBox.Focus();
-                InitializeForPost();
-            }
+            //    nfeTextBox.Focus();
+            //    InitializeForPost();
+            //}
         }
     }
 }

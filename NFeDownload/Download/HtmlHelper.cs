@@ -479,10 +479,10 @@ namespace NFeDownload.Download
                                                         product.vBC = columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Alíquota do ICMS Normal":
-                                                        product.pICMS = columnSpan.InnerText.Trim();
+                                                        product.pICMS = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" :  columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Valor do ICMS Normal":
-                                                        product.vICMS = columnSpan.InnerText.Trim();
+                                                        product.vICMS = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" : columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Valor ICMS desoneração":
                                                         product.ValorICMSDesoneracao = columnSpan.InnerText.Trim();
@@ -492,14 +492,14 @@ namespace NFeDownload.Download
                                                         break;
                                                     case "Base de Cálculo":
                                                         if (legend.InnerText.Trim() == "ICMS Normal e ST")
-                                                            product.IPI_vBC = columnSpan.InnerText.Trim();
+                                                            product.IPI_vBC = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" : columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Alíquota":
                                                         if (legend.InnerText.Trim() == "ICMS Normal e ST")
-                                                            product.IPI_pIpi = columnSpan.InnerText.Trim();
+                                                            product.IPI_pIpi = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" :  columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Valor IPI":
-                                                        product.IPI_vIpi = columnSpan.InnerText.Trim();
+                                                        product.IPI_vIpi = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" : columnSpan.InnerText.Trim();
                                                         break;
                                                     case "CST":
                                                         if (legend != null)

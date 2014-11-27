@@ -6,6 +6,8 @@
         {
             IPI_pIpi = "0";
             IPI_vIpi = "0";
+            IPI_vBC = "0";            
+            pICMS = "0";
         }
 
         public string Num { get; set; }

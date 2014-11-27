@@ -188,7 +188,9 @@ namespace NFeDownload
             nota.NFe.infNFe.emit.enderEmit = new TEnderEmi();
             nota.NFe.infNFe.emit.enderEmit.xLgr = enderParts.Length > 0 ? enderParts[0] : string.Empty;
             nota.NFe.infNFe.emit.enderEmit.nro = enderParts.Length >= 1 ? Regex.Match(enderParts[1], @"\d+").Value : "0"; //Número endereço.
-            nota.NFe.infNFe.emit.enderEmit.xCpl = enderParts.Length >= 1 ? enderParts[1].Replace(nota.NFe.infNFe.emit.enderEmit.nro, string.Empty) : string.Empty; //Complemento.
+            var xCpl = enderParts.Length >= 1 ? enderParts[1].Trim() : string.Empty;
+            if (!string.IsNullOrWhiteSpace(xCpl))
+                nota.NFe.infNFe.emit.enderEmit.xCpl = string.IsNullOrWhiteSpace(nota.NFe.infNFe.emit.enderEmit.nro) ? xCpl : xCpl.Replace(nota.NFe.infNFe.emit.enderEmit.nro, string.Empty);
             nota.NFe.infNFe.emit.enderEmit.xBairro = GetValue(dadosEmitente, "Bairro / Distrito");
             nota.NFe.infNFe.emit.enderEmit.cMun = GetValue(dadosEmitente, "Município").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
             nota.NFe.infNFe.emit.enderEmit.xMun = GetValue(dadosEmitente, "Município").Split(new[] { "-" }, StringSplitOptions.None)[1].Trim(); ;
@@ -219,7 +221,9 @@ namespace NFeDownload
             nota.NFe.infNFe.dest.enderDest = new TEndereco();
             nota.NFe.infNFe.dest.enderDest.xLgr = enderParts.Length > 0 ? enderParts[0] : string.Empty;
             nota.NFe.infNFe.dest.enderDest.nro = enderParts.Length >= 1 ? Regex.Match(enderParts[1], @"\d+").Value : "0"; //Número endereço.
-            nota.NFe.infNFe.dest.enderDest.xCpl = enderParts.Length >= 1 ? enderParts[1].Replace(nota.NFe.infNFe.dest.enderDest.nro, string.Empty) : string.Empty; //Complemento.
+            var xCpl = enderParts.Length >= 1 ? enderParts[1].Trim() : string.Empty;
+            if (!string.IsNullOrWhiteSpace(xCpl))
+                nota.NFe.infNFe.dest.enderDest.xCpl = string.IsNullOrWhiteSpace(nota.NFe.infNFe.dest.enderDest.nro) ? xCpl : xCpl.Replace(nota.NFe.infNFe.dest.enderDest.nro, string.Empty);
             nota.NFe.infNFe.dest.enderDest.xBairro = GetValue(dadosDestinatario, "Bairro / Distrito");
             nota.NFe.infNFe.dest.enderDest.cMun = GetValue(dadosDestinatario, "Município").Split(new[] { "-" }, StringSplitOptions.None)[0].Trim();
             nota.NFe.infNFe.dest.enderDest.xMun = GetValue(dadosDestinatario, "Município").Split(new[] { "-" }, StringSplitOptions.None)[1].Trim(); ;
@@ -288,12 +292,12 @@ namespace NFeDownload
                                         break;
                                     case "3":
                                         icms00.modBC = TNFeInfNFeDetImpostoICMSICMS00ModBC.Item3;
-                                        break;                                    
-                                }                                                               
+                                        break;
+                                }
                             }
-                            icms00.vBC = produto.vBC;
-                            icms00.pICMS = produto.pICMS.Replace(",",".");
-                            icms00.vICMS = produto.vICMS.Replace(",",".");
+                            icms00.vBC = produto.vBC.Replace(",", ".");
+                            icms00.pICMS = string.Format("{0:0.00}", double.Parse(produto.pICMS)).Replace(",", ".");
+                            icms00.vICMS = produto.vICMS.Replace(",", ".");
                             break;
                         case "10":
                             detIcms = new TNFeInfNFeDetImpostoICMSICMS10();
@@ -347,11 +351,11 @@ namespace NFeDownload
                         default:
                             detIcms = new TNFeInfNFeDetImpostoICMSICMS40();
                             break;
-                    }                    
-                    icms.Item = detIcms;                    
+                    }
+                    icms.Item = detIcms;
                     tiposImposto.Add(icms);
                     det.imposto.Items = tiposImposto.ToArray();
-                }                
+                }
                 //############################ PIS ############################
                 if (!string.IsNullOrWhiteSpace(produto.PIS_CST))
                 {
@@ -387,7 +391,7 @@ namespace NFeDownload
                     var ipi = new TNFeInfNFeDetImpostoIPI();
                     ipi.cEnq = produto.cEnq.Trim();
                     var ipiTrib = new TNFeInfNFeDetImpostoIPIIPITrib();
-                    switch (produto.IPI_CST.Split(new [] { '-' })[0].Trim())
+                    switch (produto.IPI_CST.Split(new[] { '-' })[0].Trim())
                     {
                         case "00":
                             ipiTrib.CST = TNFeInfNFeDetImpostoIPIIPITribCST.Item00;
@@ -411,7 +415,7 @@ namespace NFeDownload
                     ipiTrib.Items = new[] 
                     {
                         produto.IPI_vBC.Replace(",","."),
-                        produto.IPI_pIpi.Replace(",","."),
+                        string.Format("{0:0.00}", double.Parse(produto.IPI_pIpi)).Replace(",","."),
                     };
                     ipi.Item = ipiTrib;
 
@@ -444,7 +448,7 @@ namespace NFeDownload
                     }
                     det.imposto.COFINS.Item = confinsNT;
                     itensNfe.Add(det);
-                }             
+                }
             }
             nota.NFe.infNFe.det = itensNfe.ToArray();
         }
@@ -488,7 +492,7 @@ namespace NFeDownload
                 case "9":
                     nota.NFe.infNFe.transp.modFrete = TNFeInfNFeTranspModFrete.Item9;
                     break;
-            }            
+            }
             nota.NFe.infNFe.transp.transporta = new TNFeInfNFeTranspTransporta();
             nota.NFe.infNFe.transp.transporta.ItemElementName = ITCTypeCNPJCPF.CNPJ;
             nota.NFe.infNFe.transp.transporta.Item = GetValue(itensTransporte, "CNPJ").Replace(".", string.Empty).Replace("-", string.Empty).Replace("/", string.Empty);
@@ -501,11 +505,13 @@ namespace NFeDownload
             {
                 new TNFeInfNFeTranspVol 
                 {
-                    qVol = GetValue(itensTransporte, "Quantidade"),
-                    marca = GetValue(itensTransporte, "Marca dos Volumes"),
-                    pesoB = GetValue(itensTransporte, "Peso Bruto"),
+                    qVol = GetValue(itensTransporte, "Quantidade"),                    
+                    pesoB =  GetValue(itensTransporte, "Peso Bruto").Replace(",","."),
                 }
             };
+            var marca = GetValue(itensTransporte, "Marca dos Volumes");
+            if (!string.IsNullOrWhiteSpace(marca))
+                nota.NFe.infNFe.transp.vol[0].marca = marca;
         }
 
         private void UpdateAdicionais(TNfeProc nota, IList<PostResultItem> adicionais)
