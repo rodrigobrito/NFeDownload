@@ -24,14 +24,15 @@ namespace NFeDownload.Download
             var response = request.GetResponse();
             var responseStream = response.GetResponseStream();
 
-            var doc = new HtmlAgilityPack.HtmlDocument();
+            var doc = new HtmlDocument();
             doc.Load(responseStream);
-            var documentText = doc.DocumentNode.InnerText;
 
-            var itemsForPost = new PostItems();
-            itemsForPost.EventTarget = string.Empty;
-            itemsForPost.EventArgument = string.Empty;
-            itemsForPost.PalavraChave = string.Empty;
+            var itemsForPost = new PostItems
+            {
+                EventTarget = string.Empty,
+                EventArgument = string.Empty,
+                PalavraChave = string.Empty
+            };
 
             var formElement = doc.GetElementbyId("aspnetForm");
             if (formElement != null)
@@ -118,8 +119,8 @@ namespace NFeDownload.Download
                 throw new InvalidOperationException("hiddenInputToUpdateATBuffer_CommonToolkitScripts possui um valor inválido.");
             }
         }
-
-        private void Check(HtmlNode htmlNode)
+        
+        private static void Check(HtmlNode htmlNode)
         {
             if (htmlNode == null)
                 throw new NullReferenceException("Não foi possível obter os dados de http://www.nfe.fazenda.gov.br. Por favor, tente novamente.");
@@ -134,7 +135,7 @@ namespace NFeDownload.Download
 
             var request = (HttpWebRequest)WebRequest.Create("http://www.nfe.fazenda.gov.br/portal/consulta.aspx?tipoConsulta=completa&tipoConteudo=XbSeqxE8pl8=");
             request.CookieContainer = sessionCookie;
-            ((HttpWebRequest)request).UserAgent = UserAgent;
+            request.UserAgent = UserAgent;
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = byteArray.Length;
@@ -144,7 +145,7 @@ namespace NFeDownload.Download
 
             var pageResponse = request.GetResponse();
 
-            var docUserWebPage = new HtmlAgilityPack.HtmlDocument();
+            var docUserWebPage = new HtmlDocument();
             docUserWebPage.Load(pageResponse.GetResponseStream());
             var documentText = docUserWebPage.DocumentNode.InnerHtml;
             if (documentText.Contains("C&#243;digo da Imagem inv&#225;lido."))
@@ -159,12 +160,12 @@ namespace NFeDownload.Download
 
             var printRequest = (HttpWebRequest)WebRequest.Create("http://www.nfe.fazenda.gov.br/portal/consultaImpressao.aspx?tipoConsulta=completa");
             printRequest.CookieContainer = sessionCookie;
-            ((HttpWebRequest)printRequest).UserAgent = UserAgent;
+            printRequest.UserAgent = UserAgent;
             printRequest.ContentType = "application/x-www-form-urlencoded";
             var printResponse = printRequest.GetResponse();
             var printResponseStream = printResponse.GetResponseStream();
 
-            var printUserPage = new HtmlAgilityPack.HtmlDocument();
+            var printUserPage = new HtmlDocument();
             printUserPage.Load(printResponseStream);
 
             var result = new DownloadedHtmlData();
@@ -173,12 +174,7 @@ namespace NFeDownload.Download
             result.ChaveAcessso = spanChaveAcesso.InnerText.Trim();
             result.DadosNfe = GetDataItems(printUserPage, "NFe");
             var operationScience = printUserPage.DocumentNode.Descendants().Where(e => e.Id.Contains("CienciaOperacao")).ToList();
-            var scienceOperationsList = new List<IList<PostResultItem>>();
-            foreach (var science in operationScience)
-            {
-                var dadosCiencia = GetDataItems(printUserPage, science.Id);
-                scienceOperationsList.Add(dadosCiencia);
-            }
+            var scienceOperationsList = operationScience.Select(science => GetDataItems(printUserPage, science.Id)).ToList();
             result.ScienceOperations = scienceOperationsList;
             result.DadosEmitente = GetDataItems(printUserPage, "Emitente");
             result.DadosDestinatario = GetDataItems(printUserPage, "DestRem");
@@ -194,8 +190,6 @@ namespace NFeDownload.Download
 
         public string ComposePost(PostItems itemsForPost)
         {
-            var postData = string.Empty;
-
             var outgoingQueryString = HttpUtility.ParseQueryString(String.Empty);
             outgoingQueryString.Add("__EVENTTARGET", itemsForPost.EventTarget);
             outgoingQueryString.Add("__EVENTARGUMENT", itemsForPost.EventArgument);
@@ -209,9 +203,7 @@ namespace NFeDownload.Download
             outgoingQueryString.Add("ctl00$ContentPlaceHolder1$token", itemsForPost.Token);
             outgoingQueryString.Add("ctl00$ContentPlaceHolder1$captchaSom", itemsForPost.CaptchaSom);
             outgoingQueryString.Add("hiddenInputToUpdateATBuffer_CommonToolkitScripts", itemsForPost.CommomToolkitScripts);
-            postData = outgoingQueryString.ToString();
-
-            return postData;
+            return outgoingQueryString.ToString();
         }
 
         public IList<PostResultItem> GetDataItems(HtmlDocument doc, string div)
@@ -224,7 +216,7 @@ namespace NFeDownload.Download
             var count = 1;
             foreach (var fieldset in nfeDiv.Descendants().Where(d => d.Name.ToLower() == "fieldset").ToList())
             {
-                var legend = fieldset.Descendants().Where(d => d.Name.ToLower() == "legend").FirstOrDefault();
+                var legend = fieldset.Descendants().FirstOrDefault(d => d.Name.ToLower() == "legend");
                 var tables = fieldset.Descendants().Where(d => d.Name.ToLower() == "table").ToList();
                 var eEventosNfe = false;
                 if (legend != null)
@@ -245,19 +237,24 @@ namespace NFeDownload.Download
                                     var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
                                     foreach (var td in tds)
                                     {
-                                        var dataItem = new PostResultItem();
-                                        dataItem.Fieldset = count;
-                                        dataItem.Legend = legend.InnerText.Trim();
-                                        dataItem.Div = div;
-
-                                        var label = td.Descendants().Where(d => d.Name.ToLower() == "label").FirstOrDefault();
-                                        var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
-
-                                        if (label != null && span != null && !string.IsNullOrWhiteSpace(label.InnerText))
+                                        if (legend != null)
                                         {
-                                            dataItem.AttributeName = label.InnerText.Trim();
-                                            dataItem.AttributeValue = span.InnerText.Trim();
-                                            dataItems.Add(dataItem);
+                                            var dataItem = new PostResultItem
+                                            {
+                                                Fieldset = count,
+                                                Legend = legend.InnerText.Trim(),
+                                                Div = div
+                                            };
+
+                                            var label = td.Descendants().FirstOrDefault(d => d.Name.ToLower() == "label");
+                                            var span = td.Descendants().FirstOrDefault(d => d.Name.ToLower() == "span");
+
+                                            if (label != null && span != null && !string.IsNullOrWhiteSpace(label.InnerText))
+                                            {
+                                                dataItem.AttributeName = label.InnerText.Trim();
+                                                dataItem.AttributeValue = span.InnerText.Trim();
+                                                dataItems.Add(dataItem);
+                                            }
                                         }
                                     }
                                 }
@@ -266,7 +263,7 @@ namespace NFeDownload.Download
                             {
                                 for (int i = 1; i < trs.Count; i++)
                                 {
-                                    var subNodeScience = trs[i].Descendants().Where(e => e.Id.Contains("CienciaOperacao")).FirstOrDefault();
+                                    var subNodeScience = trs[i].Descendants().FirstOrDefault(e => e.Id.Contains("CienciaOperacao"));
 
                                     if (subNodeScience != null)
                                         subNodeScience.Remove();
@@ -292,8 +289,9 @@ namespace NFeDownload.Download
                                                 break;
                                         }
 
-                                        var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
-                                        dataItem.AttributeValue = span.InnerText.Trim();
+                                        var span = td.Descendants().FirstOrDefault(d => d.Name.ToLower() == "span");
+                                        if (span != null)
+                                            dataItem.AttributeValue = span.InnerText.Trim();
                                         dataItem.Fieldset = count;
                                         dataItem.Legend = legend.InnerText.Trim();
                                         dataItem.Div = div;
@@ -323,23 +321,18 @@ namespace NFeDownload.Download
                 && d.GetAttributeValue("class", "novalue").Contains("toggle box")
                 || d.GetAttributeValue("class", "novalue").Contains("toggable box")).ToList();
 
-            var count = 1;
-
             foreach (var table in tables)
             {
                 if (table.GetAttributeValue("class", "novalue") == "toggle box")
                 {
-                    product = new Produto();
-                    product.Num = table.Descendants().Where(d => d.Name.ToLower() == "td"
-                        && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-numero").FirstOrDefault().InnerText.Trim();
-                    product.Descricao = table.Descendants().Where(d => d.Name.ToLower() == "td"
-                        && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-descricao").FirstOrDefault().InnerText.Trim();
-                    product.Qtd = table.Descendants().Where(d => d.Name.ToLower() == "td"
-                        && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-qtd").FirstOrDefault().InnerText.Trim();
-                    product.UnidadeComercial = table.Descendants().Where(d => d.Name.ToLower() == "td"
-                       && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-uc").FirstOrDefault().InnerText.Trim();
-                    product.Valor = table.Descendants().Where(d => d.Name.ToLower() == "td"
-                     && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-vb").FirstOrDefault().InnerText.Trim();
+                    product = new Produto
+                    {
+                        Num = table.Descendants().FirstOrDefault(d => d.Name.ToLower() == "td" && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-numero").InnerText.Trim(),
+                        Descricao = table.Descendants().FirstOrDefault(d => d.Name.ToLower() == "td" && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-descricao").InnerText.Trim(),
+                        Qtd = table.Descendants().FirstOrDefault(d => d.Name.ToLower() == "td" && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-qtd").InnerText.Trim(),
+                        UnidadeComercial = table.Descendants().FirstOrDefault(d => d.Name.ToLower() == "td" && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-uc").InnerText.Trim(),
+                        Valor = table.Descendants().FirstOrDefault(d => d.Name.ToLower() == "td" && d.GetAttributeValue("class", "novalue") == "fixo-prod-serv-vb").InnerText.Trim()
+                    };
                 }
 
                 if (table.GetAttributeValue("class", "novalue") == "toggable box" && product != null)
@@ -358,8 +351,7 @@ namespace NFeDownload.Download
                             {
                                 var subDetailTables = td.Descendants().Where(e => e.Name.ToLower() == "table"
                                 && e.GetAttributeValue("class", "novalue") == "box").ToList();
-                                foreach (var tableDetail in subDetailTables)
-                                    tablesToRemove.Add(tableDetail);
+                                tablesToRemove.AddRange(subDetailTables);
                             }
                         }
                     }
@@ -377,8 +369,8 @@ namespace NFeDownload.Download
                             var tds = tr.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
                             foreach (var td in tds)
                             {
-                                var label = td.Descendants().Where(d => d.Name.ToLower() == "label").FirstOrDefault();
-                                var span = td.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
+                                var label = td.Descendants().FirstOrDefault(d => d.Name.ToLower() == "label");
+                                var span = td.Descendants().FirstOrDefault(d => d.Name.ToLower() == "span");
 
                                 if (label != null && span != null && !string.IsNullOrWhiteSpace(label.InnerText))
                                 {
@@ -458,12 +450,12 @@ namespace NFeDownload.Download
                                         var tableColumns = tableRow.Descendants().Where(e => e.Name.ToLower() == "td").ToList();
                                         foreach (var tableColumn in tableColumns)
                                         {
-                                            var columnLabel = tableColumn.Descendants().Where(d => d.Name.ToLower() == "label").FirstOrDefault();
-                                            var columnSpan = tableColumn.Descendants().Where(d => d.Name.ToLower() == "span").FirstOrDefault();
+                                            var columnLabel = tableColumn.Descendants().FirstOrDefault(d => d.Name.ToLower() == "label");
+                                            var columnSpan = tableColumn.Descendants().FirstOrDefault(d => d.Name.ToLower() == "span");
 
                                             if (columnLabel != null && columnSpan != null && !string.IsNullOrWhiteSpace(columnLabel.InnerText))
                                             {
-                                                var legend = td.Descendants().Where(e => e.Name.ToLower() == "legend").FirstOrDefault();
+                                                var legend = td.Descendants().FirstOrDefault(e => e.Name.ToLower() == "legend");
                                                 switch (columnLabel.InnerText.Trim())
                                                 {
                                                     case "Origem da Mercadoria":
@@ -479,7 +471,7 @@ namespace NFeDownload.Download
                                                         product.vBC = columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Alíquota do ICMS Normal":
-                                                        product.pICMS = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" :  columnSpan.InnerText.Trim();
+                                                        product.pICMS = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" : columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Valor do ICMS Normal":
                                                         product.vICMS = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" : columnSpan.InnerText.Trim();
@@ -496,7 +488,7 @@ namespace NFeDownload.Download
                                                         break;
                                                     case "Alíquota":
                                                         if (legend.InnerText.Trim() == "ICMS Normal e ST")
-                                                            product.IPI_pIpi = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" :  columnSpan.InnerText.Trim();
+                                                            product.IPI_pIpi = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" : columnSpan.InnerText.Trim();
                                                         break;
                                                     case "Valor IPI":
                                                         product.IPI_vIpi = string.IsNullOrWhiteSpace(columnSpan.InnerText.Trim()) ? "0" : columnSpan.InnerText.Trim();
@@ -529,8 +521,6 @@ namespace NFeDownload.Download
                     }
                     products.Add(product);
                 }
-
-                count++;
             }
 
             return products;
