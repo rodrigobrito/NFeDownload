@@ -16,7 +16,7 @@ namespace NFeDownload
 {
     public class NFeGenerator
     {
-        private CultureInfo enUs;
+        private readonly CultureInfo enUs;
 
         public NFeGenerator()
         {
@@ -290,9 +290,35 @@ namespace NFeDownload
                         uTrib = produto.UnidadeTributavel,
                         qTrib = double.Parse(produto.QuantidadeTributavel).ToString("0.00", enUs),
                         vUnTrib = double.Parse(produto.ValorUnitarioTributacao).ToString("0.0000", enUs),
-                        indTot = int.Parse(produto.IndicadorComposicaoValorTotalNFe.Split(new[] { "-" }, StringSplitOptions.None)[0]) == 1 ? TNFeInfNFeDetProdIndTot.Item1 : TNFeInfNFeDetProdIndTot.Item0
+                        indTot = int.Parse(produto.IndicadorComposicaoValorTotalNFe.Split(new[] { "-" }, StringSplitOptions.None)[0]) == 1 ? TNFeInfNFeDetProdIndTot.Item1 : TNFeInfNFeDetProdIndTot.Item0                      
                     }
                 };
+
+                if (!string.IsNullOrWhiteSpace(produto.nDI))
+                {
+                    det.prod.DI = new[]
+                    {
+                        new TNFeInfNFeDetProdDI
+                        {
+                            nDI = produto.nDI,
+                            dDI = DateTime.Parse(produto.dDI).ToString("yyyy-MM-dd"),
+                            xLocDesemb = produto.xLocDesemb,
+                            UFDesemb = GetUFEmi(produto.UFDesemb),
+                            dDesemb = DateTime.Parse(produto.dDesemb).ToString("yyyy-MM-dd"),
+                            cExportador = produto.cExportador,
+                            adi = new[]
+                            {
+                                new TNFeInfNFeDetProdDIAdi
+                                {
+                                    nAdicao = produto.nAdicao,
+                                    nSeqAdic = produto.nSeqAdic,
+                                    cFabricante = produto.cFabricante
+                                }
+                            }
+                        }
+                    };
+                }
+
                 det.imposto = new TNFeInfNFeDetImposto();
 
                 var tiposImposto = new List<object>();

@@ -440,7 +440,8 @@ namespace NFeDownload.Download
                                 }
 
                                 var subDetailTables = td.Descendants().Where(e => e.Name.ToLower() == "table"
-                                        && e.GetAttributeValue("class", "novalue") == "box").ToList();
+                                        && (e.GetAttributeValue("class", "novalue") == "box" || 
+                                            e.GetAttributeValue("class", "novalue") ==  "toggable box")).ToList();
 
                                 foreach (var subTable in subDetailTables)
                                 {
@@ -510,6 +511,42 @@ namespace NFeDownload.Download
                                                             }
                                                         }
                                                         break;
+                                                    case "Número":                                                        
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.nDI = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Data de registro":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.dDI = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Local do desembaraço aduaneiro":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.xLocDesemb = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "UF do desembaraço":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.UFDesemb = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Data do desembaraço":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.dDesemb = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Código do Exportador":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.cExportador = columnSpan.InnerText.Trim();
+                                                        break;                                                
+                                                    case "Adição":
+                                                         if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                             product.nAdicao = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Item":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.nSeqAdic = columnSpan.InnerText.Trim();
+                                                        break;
+                                                    case "Código Fabricante Estrangeiro":
+                                                        if (legend.InnerText.Trim() == "ICMS Normal e ST")
+                                                            product.cFabricante = columnSpan.InnerText.Trim();
+                                                        break;
                                                 }
                                             }
                                         }
@@ -520,6 +557,7 @@ namespace NFeDownload.Download
                         }
                     }
                     products.Add(product);
+                    product = null;
                 }
             }
 

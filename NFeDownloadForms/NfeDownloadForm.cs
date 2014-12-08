@@ -35,15 +35,15 @@ namespace NFeDownloadForms
 
         private void SendButtonOnClick(object sender, EventArgs e)
         {
-            //try
-            //{
+            try
+            {
                 postItems.ChaveAcessoCompleta = nfeTextBox.Text;
                 postItems.Captcha = captchaTextBox.Text;
 
                 helper.ValidatePost(postItems);
                 var postResult = helper.Post(postItems);
 
-                SaveFileDialog sfileDialog = new SaveFileDialog();
+                var sfileDialog = new SaveFileDialog();
                 sfileDialog.Filter = "Extensible Markup Language (*.xml)|*.xml";
                 sfileDialog.FilterIndex = 2;
                 sfileDialog.RestoreDirectory = true;
@@ -58,14 +58,14 @@ namespace NFeDownloadForms
                     nfeTextBox.Text = string.Empty;
                     nfeTextBox.Focus();
                 }
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Aviso!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-            //    nfeTextBox.Focus();
-            //    InitializeForPost();
-            //}
+                nfeTextBox.Focus();
+                InitializeForPost();
+            }
         }
     }
 }

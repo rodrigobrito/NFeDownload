@@ -54,13 +54,19 @@
         public string COFINS_CST { get; set; }
 
         public string IPI_CST { get; set; }
-
         public string cEnq { get; set; }
-
         public string IPI_vBC { get; set; }
-
         public string IPI_pIpi { get; set; }
-
         public string IPI_vIpi { get; set; }
+
+        public string nDI { get; set; }
+        public string dDI { get; set; }
+        public string xLocDesemb { get; set; }
+        public string UFDesemb { get; set; }
+        public string dDesemb { get; set; }
+        public string cExportador { get; set; }
+        public string nAdicao { get; set; }
+        public string nSeqAdic { get; set; }
+        public string cFabricante { get; set; }
     }
 }
