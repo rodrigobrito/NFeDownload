@@ -102,7 +102,7 @@ namespace NFeDownload
             var dataEmissaoText = GetValue(dadosNfe, "Data de Emissão");
             var dataEmissao = DateTime.Parse(dataEmissaoText);
 
-            var dataHoraSaidaText = GetValue(dadosNfe, "Data/Hora  Saída/Entrada");
+            var dataHoraSaidaText = GetValue(dadosNfe, "Data Saída/Entrada");
             var dataHoraSaida = string.IsNullOrWhiteSpace(dataHoraSaidaText) ? (DateTime?)null : DateTime.Parse(dataHoraSaidaText.Replace("às", string.Empty).Replace("\r\n", string.Empty));
 
             nota.NFe.infNFe.ide = new TNFeInfNFeIde();
@@ -114,7 +114,8 @@ namespace NFeDownload
             nota.NFe.infNFe.ide.serie = GetValue(dadosNfe, "Série");
             nota.NFe.infNFe.ide.nNF = GetValue(dadosNfe, "Número");
             nota.NFe.infNFe.ide.dEmi = dataEmissao.ToString("yyyy-MM-dd");
-            //nota.NFe.infNFe.ide.dSaiEnt = dataHoraSaida == null ? string.Empty : dataHoraSaida.Value.ToString("yyyy-MM-dd");
+            if (dataHoraSaida != null)
+                nota.NFe.infNFe.ide.dSaiEnt = dataHoraSaida.Value.ToString("yyyy-MM-dd");
             //nota.NFe.infNFe.ide.hSaiEnt = dataHoraSaida == null ? string.Empty : dataHoraSaida.Value.ToString("hh:mm:ss");
             nota.NFe.infNFe.ide.tpNF = GetTpNF(GetValue(dadosNfe, "Tipo da Operação"));
             nota.NFe.infNFe.ide.cMunFG = municipioEmitente;
@@ -214,6 +215,8 @@ namespace NFeDownload
             nota.NFe.infNFe.emit.enderEmit.CEP = GetValue(dadosEmitente, "CEP").Replace("-", string.Empty);
             nota.NFe.infNFe.emit.enderEmit.cPais = TEnderEmiCPais.Item1058;
             nota.NFe.infNFe.emit.enderEmit.xPais = TEnderEmiXPais.BRASIL;
+            nota.NFe.infNFe.emit.enderEmit.cPaisSpecified = true;
+            nota.NFe.infNFe.emit.enderEmit.xPaisSpecified = true;
             var fone = GetValue(dadosEmitente, "Telefone");
             if (!string.IsNullOrWhiteSpace(GetValue(dadosEmitente, "Telefone")))
                 nota.NFe.infNFe.emit.enderEmit.fone = fone
@@ -290,7 +293,7 @@ namespace NFeDownload
                         uTrib = produto.UnidadeTributavel,
                         qTrib = double.Parse(produto.QuantidadeTributavel).ToString("0.00", enUs),
                         vUnTrib = double.Parse(produto.ValorUnitarioTributacao).ToString("0.0000", enUs),
-                        indTot = int.Parse(produto.IndicadorComposicaoValorTotalNFe.Split(new[] { "-" }, StringSplitOptions.None)[0]) == 1 ? TNFeInfNFeDetProdIndTot.Item1 : TNFeInfNFeDetProdIndTot.Item0                      
+                        indTot = int.Parse(produto.IndicadorComposicaoValorTotalNFe.Split(new[] { "-" }, StringSplitOptions.None)[0]) == 1 ? TNFeInfNFeDetProdIndTot.Item1 : TNFeInfNFeDetProdIndTot.Item0
                     }
                 };
 
